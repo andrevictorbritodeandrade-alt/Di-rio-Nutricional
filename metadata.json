@@ -1,0 +1,7 @@
+{
+  "name": "Diário Nutricional",
+  "description": "A personalized diet and hydration tracker with meal scheduling and macro monitoring.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
