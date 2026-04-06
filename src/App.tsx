@@ -21,10 +21,15 @@ import {
   Utensils,
   Target,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  LogOut
 } from 'lucide-react';
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
+import Login from './components/Login';
+import Anamnesis from './components/Anamnesis';
+import { User, DietPlan } from './types';
+import { USERS } from './constants';
 
 interface MealData {
   p: number;
@@ -47,6 +52,7 @@ interface Recipe {
 }
 
 const App = () => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas'>('diario');
   const [isDiaDeTreino, setIsDiaDeTreino] = useState(true);
   const [selectedMeal, setSelectedMeal] = useState<number | null>(null);
@@ -128,10 +134,10 @@ const App = () => {
     }
   ];
 
-  const CALORIE_GOAL = 1500; 
+  const CALORIE_GOAL = currentUser?.dietPlan?.kcalGoal || 1500; 
   const WATER_GOAL = 3000; 
 
-  const rotinaTreino = [
+  const rotinaTreino = currentUser?.dietPlan?.meals || [
     { id: 1, nome: "Pré-Treino", hora: "05:15", desc: "Café preto + 1 banana", kcal: 90, status: "concluido", target: { p: 2, c: 20, g: 0, kcal: 90 } },
     { id: 101, nome: "Pequeno-almoço", hora: "08:00", desc: "Pão Francês, Queijo e Mortadela", kcal: 245, status: "concluido", target: { p: 11, c: 30, g: 9, kcal: 245 } },
     { id: 102, nome: "Almoço", hora: "12:30", desc: "Frango (150g), Arroz (100g), Batata Palha, Salada e Ovo", kcal: 710, status: "concluido", target: { p: 41, c: 55, g: 35, kcal: 710 } },
@@ -140,7 +146,7 @@ const App = () => {
     { id: 105, nome: "Ceia", hora: "22:15", desc: "Iogurte Natural + 10g Whey/Aveia", kcal: 110, status: "pendente", target: { p: 15, c: 10, g: 2, kcal: 110 } },
   ];
 
-  const rotinaDescanso = [
+  const rotinaDescanso = currentUser?.dietPlan?.meals || [
     { id: 201, nome: "Pequeno-almoço", hora: "10:30", desc: "Omelete Francesa (2 ovos) + 1 fatia de Queijo", kcal: 190, status: "pendente", target: { p: 18, c: 2, g: 12, kcal: 190 } },
     { id: 202, nome: "Almoço", hora: "13:30", desc: "Proteína (150g) + Mix de Legumes no vapor + 50g Arroz", kcal: 450, status: "pendente", target: { p: 35, c: 30, g: 15, kcal: 450 } },
     { id: 203, nome: "Lanche", hora: "17:30", desc: "1 Fruta (Maçã/Pera) + 3 Castanhas", kcal: 150, status: "pendente", target: { p: 2, c: 20, g: 8, kcal: 150 } },
@@ -203,15 +209,21 @@ const App = () => {
 
     setIsProcessing(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("API Key não configurada. Verifique as variáveis de ambiente.");
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
       const model = "gemini-3-flash-preview";
       
-      let prompt = `Você é um assistente de nutrição pessoal para o André. 
+      let prompt = `Você é um assistente de nutrição pessoal para o(a) ${currentUser?.name}. 
       Analise o seguinte comando: "${inputText}".
       Se houver uma imagem, analise os alimentos presentes, estime a gramatura total e por porção.
       Calcule os macronutrientes (P, C, G) e as Calorias.
-      Responda de forma curta, direta e motivadora em português.
-      Se o comando for para registrar algo, sugira os valores para eu adicionar ao histórico.`;
+      Responda em JSON com uma mensagem motivadora e os dados nutricionais se for um registro de refeição.
+      Se for apenas uma dúvida, responda apenas a mensagem.
+      Se for registro de água (ex: "bebi 500ml"), retorne o campo 'waterAmount' com o valor em ml.`;
 
       const parts: any[] = [{ text: prompt }];
       if (selectedImage) {
@@ -225,18 +237,56 @@ const App = () => {
 
       const response = await ai.models.generateContent({
         model,
-        contents: [{ parts }],
+        contents: [{ role: 'user', parts }],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              message: { type: Type.STRING },
+              waterAmount: { type: Type.NUMBER },
+              mealData: {
+                type: Type.OBJECT,
+                properties: {
+                  p: { type: Type.NUMBER },
+                  c: { type: Type.NUMBER },
+                  g: { type: Type.NUMBER },
+                  kcal: { type: Type.NUMBER },
+                  title: { type: Type.STRING }
+                }
+              }
+            },
+            required: ["message"]
+          }
+        }
       });
 
-      // For now, we just show the response in an alert or a toast
-      // In a real app, we would parse the JSON and update confirmedMeals
-      alert(response.text);
+      const result = JSON.parse(response.text);
+      
+      if (result.waterAmount) {
+        setWaterIntake(prev => prev + result.waterAmount);
+      }
+
+      if (result.mealData) {
+        const newId = Date.now();
+        setConfirmedMeals(prev => ({
+          ...prev,
+          [newId]: {
+            ...result.mealData,
+            option: 'IA',
+            realDescription: `Registro IA: ${result.mealData.title || inputText}`
+          }
+        }));
+      }
+
+      alert(result.message);
       
       setInputText('');
       setSelectedImage(null);
-    } catch (error) {
-      console.error("Erro ao processar com IA:", error);
-      alert("Erro ao processar sua solicitação. Tente novamente.");
+    } catch (error: any) {
+      console.error("Erro detalhado da IA:", error);
+      const errorMsg = error.message || "Erro desconhecido";
+      alert(`Erro ao processar: ${errorMsg}. Verifique sua conexão ou chave de API.`);
     } finally {
       setIsProcessing(false);
     }
@@ -252,30 +302,64 @@ const App = () => {
   const totalKcal = totalMacros.kcal;
   const remainingKcal = CALORIE_GOAL - totalKcal;
 
+  if (!currentUser) {
+    return <Login onLogin={setCurrentUser} />;
+  }
+
+  if (!currentUser.anamnesisCompleted) {
+    return (
+      <Anamnesis 
+        user={currentUser} 
+        onComplete={(plan) => {
+          setCurrentUser({ ...currentUser, anamnesisCompleted: true, dietPlan: plan });
+        }} 
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-stone-50 text-slate-800 pb-40 font-sans relative scrollbar-hide">
       {/* HEADER ESTILO MYFITNESSPAL */}
       <header className="bg-white rounded-b-[2.5rem] shadow-sm border-b border-stone-200 p-6 pt-8 sticky top-0 z-50">
         <div className="max-w-xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight font-montserrat uppercase">Diário Nutricional</h1>
-              <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
-                <Calendar className="w-4 h-4" />
-                <span>{currentDayName || 'Hoje'}</span>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-stone-100">
+                {currentUser.avatarUrl ? (
+                  <img src={currentUser.avatarUrl} alt={currentUser.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-black">
+                    {currentUser.name[0]}
+                  </div>
+                )}
+              </div>
+              <div>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight font-montserrat uppercase">Diário Nutricional</h1>
+                <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
+                  <Calendar className="w-4 h-4" />
+                  <span>{currentDayName || 'Hoje'} • {currentUser.name}</span>
+                </div>
               </div>
             </div>
-            <button 
-              onClick={() => setIsDiaDeTreino(!isDiaDeTreino)}
-              className={`px-4 py-2 rounded-full text-[10px] font-black transition-all flex items-center gap-2 uppercase tracking-wider ${
-                isDiaDeTreino 
-                ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                : 'bg-stone-100 text-stone-600 border border-stone-200'
-              }`}
-            >
-              {isDiaDeTreino ? <Flame className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-              {isDiaDeTreino ? 'DIA DE TREINO' : 'DIA DE DESCANSO'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setCurrentUser(null)}
+                className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 active:scale-95 transition-transform"
+              >
+                <LogOut size={18} />
+              </button>
+              <button 
+                onClick={() => setIsDiaDeTreino(!isDiaDeTreino)}
+                className={`px-4 py-2 rounded-full text-[10px] font-black transition-all flex items-center gap-2 uppercase tracking-wider ${
+                  isDiaDeTreino 
+                  ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                  : 'bg-stone-100 text-stone-600 border border-stone-200'
+                }`}
+              >
+                {isDiaDeTreino ? <Flame className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                {isDiaDeTreino ? 'TREINO' : 'DESCANSO'}
+              </button>
+            </div>
           </div>
 
           {/* RESUMO DE CALORIAS (MYFITNESSPAL STYLE) */}
