@@ -4,6 +4,9 @@ import { USERS } from '../constants';
 import { User } from '../types';
 import { Lock, User as UserIcon, Loader2, ChefHat, Utensils } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { auth, db } from '../firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -15,20 +18,49 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [avatars, setAvatars] = useState<Record<string, string>>({});
   const [loadingAvatars, setLoadingAvatars] = useState(true);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const generateAvatars = async () => {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        console.error("API Key não configurada para geração de avatares.");
-        setLoadingAvatars(false);
-        return;
-      }
-      const ai = new GoogleGenAI({ apiKey });
-      const newAvatars: Record<string, string> = {};
+  const generateAvatars = async (force = false) => {
+    if (force) {
+      setIsRefreshing(true);
+      USERS.forEach(u => localStorage.removeItem(`avatar_${u.id}`));
+    } else {
+      setLoadingAvatars(true);
+    }
 
-      try {
-        for (const user of USERS) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("API Key não configurada para geração de avatares.");
+      setLoadingAvatars(false);
+      setIsRefreshing(false);
+      return;
+    }
+    const ai = new GoogleGenAI({ apiKey });
+    const newAvatars: Record<string, string> = { ...avatars };
+
+    try {
+      for (const user of USERS) {
+        try {
+          // 1. Tenta buscar do localStorage primeiro (cache local ultra rápido)
+          const localCache = localStorage.getItem(`avatar_${user.id}`);
+          if (localCache && !force) {
+            newAvatars[user.id] = localCache;
+            continue;
+          }
+
+          // 2. Tenta buscar do Firestore (cache compartilhado)
+          if (!force) {
+            const userDoc = await getDoc(doc(db, 'users', user.id));
+            if (userDoc.exists() && userDoc.data().avatarUrl && !userDoc.data().avatarUrl.includes('picsum')) {
+              const remoteAvatar = userDoc.data().avatarUrl;
+              newAvatars[user.id] = remoteAvatar;
+              localStorage.setItem(`avatar_${user.id}`, remoteAvatar);
+              continue;
+            }
+          }
+
+          // 3. Tenta gerar com a IA
           const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image',
             contents: {
@@ -39,30 +71,81 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             }
           });
 
+          let generated = false;
           for (const part of response.candidates?.[0]?.content?.parts || []) {
             if (part.inlineData) {
-              newAvatars[user.id] = `data:image/png;base64,${part.inlineData.data}`;
+              const b64 = `data:image/png;base64,${part.inlineData.data}`;
+              newAvatars[user.id] = b64;
+              localStorage.setItem(`avatar_${user.id}`, b64);
+              generated = true;
               break;
             }
           }
+          
+          if (!generated) {
+            newAvatars[user.id] = user.avatarUrl || `https://picsum.photos/seed/${user.id}/200/200`;
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+        } catch (err: any) {
+          if (err?.status === 'RESOURCE_EXHAUSTED' || err?.message?.includes('429')) {
+            console.warn(`Cota de IA excedida para ${user.name}. Usando fallback.`);
+          } else {
+            console.error(`Error generating avatar for ${user.name}:`, err);
+          }
+          newAvatars[user.id] = user.avatarUrl || `https://picsum.photos/seed/${user.id}/200/200`;
         }
-        setAvatars(newAvatars);
-      } catch (err) {
-        console.error("Error generating avatars:", err);
-      } finally {
-        setLoadingAvatars(false);
       }
-    };
+      setAvatars(newAvatars);
+    } catch (err) {
+      console.error("Error in generateAvatars loop:", err);
+    } finally {
+      setLoadingAvatars(false);
+      setIsRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     generateAvatars();
   }, []);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (selectedUser && password === selectedUser.password) {
-      onLogin({
-        ...selectedUser,
-        avatarUrl: avatars[selectedUser.id]
-      });
+      setIsLoggingIn(true);
+      try {
+        const email = `${selectedUser.id}@diario.com`;
+        // Tenta logar, se falhar tenta criar (para o primeiro acesso)
+        try {
+          await signInWithEmailAndPassword(auth, email, password + "extra_salt");
+        } catch (err: any) {
+          if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+            await createUserWithEmailAndPassword(auth, email, password + "extra_salt");
+          } else {
+            throw err;
+          }
+        }
+
+        onLogin({
+          ...selectedUser,
+          avatarUrl: avatars[selectedUser.id]
+        });
+
+        // Salva o avatar no Firestore após o login bem-sucedido para cache
+        if (avatars[selectedUser.id] && !avatars[selectedUser.id].includes('picsum')) {
+          const { password, ...userData } = selectedUser;
+          await setDoc(doc(db, 'users', selectedUser.id), {
+            ...userData,
+            avatarUrl: avatars[selectedUser.id]
+          }, { merge: true });
+        }
+      } catch (err) {
+        console.error("Erro ao autenticar no Firebase:", err);
+        setError('Erro de conexão com o servidor de dados.');
+        setTimeout(() => setError(''), 3000);
+      } finally {
+        setIsLoggingIn(false);
+      }
     } else {
       setError('Senha incorreta!');
       setTimeout(() => setError(''), 2000);
@@ -100,6 +183,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">
             Escolha seu perfil para continuar
           </p>
+          
+          <button 
+            onClick={() => generateAvatars(true)}
+            disabled={isRefreshing || loadingAvatars}
+            className="text-[9px] font-black text-blue-600 uppercase tracking-widest hover:underline disabled:opacity-50 flex items-center justify-center gap-2 mx-auto mt-2"
+          >
+            {isRefreshing ? (
+              <>
+                <Loader2 size={12} className="animate-spin" />
+                <span>Regerando...</span>
+              </>
+            ) : (
+              "Regerar Avatares Disney"
+            )}
+          </button>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
@@ -178,10 +276,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               )}
 
               <button
+                disabled={isLoggingIn}
                 onClick={handleLogin}
-                className="w-full h-16 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-sm active:scale-95 transition-all shadow-xl shadow-slate-200 hover:bg-blue-600"
+                className="w-full h-16 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-sm active:scale-95 transition-all shadow-xl shadow-slate-200 hover:bg-blue-600 disabled:opacity-50 flex items-center justify-center gap-3"
               >
-                Acessar Diário
+                {isLoggingIn ? (
+                  <>
+                    <Loader2 className="animate-spin" size={20} />
+                    <span>Autenticando...</span>
+                  </>
+                ) : (
+                  "Acessar Diário"
+                )}
               </button>
             </motion.div>
           )}

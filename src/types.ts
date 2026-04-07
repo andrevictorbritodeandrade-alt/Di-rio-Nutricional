@@ -1,3 +1,10 @@
+export interface HealthMeasurement {
+  time: string;
+  glucose: string;
+  bloodPressure: string;
+  heartRate: string;
+}
+
 export interface User {
   id: string;
   name: string;

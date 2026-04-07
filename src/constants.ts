@@ -5,16 +5,18 @@ export const USERS: User[] = [
     id: 'andre',
     name: 'André Brito',
     password: '1008',
-    avatarDesc: 'Disney style 3D character, black male, short black shorts, Angola national football team jersey (red/black/yellow), trimmed lumberjack beard, curly hair (3C type), round glasses, smiling, vibrant background.',
+    avatarDesc: 'Disney style 3D character, black man with a beard and glasses, wearing a brown fedora hat, a leopard print short-sleeved button-up shirt, light beige shorts, smiling, standing on a sunny street with colorful buildings and mountains in the background, high quality, 3d render.',
+    avatarUrl: 'https://picsum.photos/seed/andre/200/200',
     isAutistic: true,
     hasADHD: true,
-    anamnesisCompleted: true, // André already has a diet in the current app
+    anamnesisCompleted: true,
   },
   {
     id: 'marcelly',
     name: 'Marcelly Bispo',
     password: '1929',
-    avatarDesc: 'Disney style 3D character, black female, long curly hair (4C type), hourglass figure (corpo violão), Flamengo jersey (red and black stripes), short black shorts, huge smile, vibrant background.',
-    anamnesisCompleted: false, // Marcelly is "zerada"
+    avatarDesc: 'Disney style 3D character, tall black woman with long dark braids, wearing yellow tinted sunglasses, a yellow leopard print one-shoulder crop top, a short yellow skirt, smiling, standing on a sunny street with colorful buildings and mountains in the background, high quality, 3d render.',
+    avatarUrl: 'https://picsum.photos/seed/marcelly/200/200',
+    anamnesisCompleted: false,
   }
 ];
