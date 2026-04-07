@@ -15,6 +15,7 @@ if ('serviceWorker' in navigator) {
 }
 */
 
+console.log("Main.tsx executing...");
 createRoot(document.getElementById('root')!).render(
   <App />,
 );

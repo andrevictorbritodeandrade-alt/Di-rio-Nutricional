@@ -647,7 +647,10 @@ const App = () => {
                 )}
               </div>
               <div>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight font-montserrat uppercase">Diário Nutricional</h1>
+                <h1 className="text-2xl font-[1000] text-slate-900 tracking-[-0.08em] font-montserrat uppercase flex">
+                  <span>DIÁRIO</span>
+                  <span className="text-blue-600">NUTRICIONAL</span>
+                </h1>
                 <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
                   <Calendar className="w-4 h-4" />
                   <span>{currentDayName || 'Hoje'} • {currentUser.name}</span>

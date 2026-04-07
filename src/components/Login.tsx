@@ -170,21 +170,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         className="w-full max-w-md text-center space-y-12 relative z-10"
       >
         <div className="space-y-4">
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="inline-block p-4 bg-white rounded-[2rem] shadow-xl shadow-blue-100 mb-4"
-          >
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white">
-              <ChefHat size={32} />
-            </div>
-          </motion.div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight font-montserrat uppercase flex items-center justify-center gap-3">
+          <h1 className="text-5xl font-[1000] text-slate-900 tracking-[-0.08em] font-montserrat uppercase flex items-center justify-center gap-1">
             <span className="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-100">
-              <Utensils size={24} />
+              <Utensils size={32} />
             </span>
-            <span>Diário <span className="text-blue-600">Nutricional</span></span>
+            <span className="flex">
+              <span>DIÁRIO</span>
+              <span className="text-blue-600">NUTRICIONAL</span>
+            </span>
           </h1>
           <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">
             Escolha seu perfil para continuar
