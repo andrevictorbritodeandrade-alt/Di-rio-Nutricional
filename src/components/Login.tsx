@@ -264,7 +264,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  className="w-full h-16 pl-14 pr-4 rounded-[2rem] border-2 border-stone-100 focus:border-blue-600 focus:ring-0 bg-white text-center font-black tracking-[0.5em] text-xl shadow-lg transition-all"
+                  className="w-full h-16 pl-14 pr-4 rounded-[2rem] border-2 border-stone-100 focus:border-blue-600 focus:ring-0 bg-white text-center font-black tracking-[0.15em] text-lg shadow-lg transition-all placeholder:tracking-normal"
                 />
                 <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-blue-600 transition-colors" size={24} />
               </div>
