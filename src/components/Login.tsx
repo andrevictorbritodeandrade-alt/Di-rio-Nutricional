@@ -24,7 +24,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const generateAvatars = async (force = false) => {
     if (force) {
       setIsRefreshing(true);
-      USERS.forEach(u => localStorage.removeItem(`avatar_${u.id}`));
+      USERS.forEach(u => {
+        try {
+          localStorage.removeItem(`avatar_${u.id}`);
+        } catch (e) {
+          console.warn("Erro ao acessar localStorage:", e);
+        }
+      });
     } else {
       setLoadingAvatars(true);
     }
@@ -43,7 +49,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       for (const user of USERS) {
         try {
           // 1. Tenta buscar do localStorage primeiro (cache local ultra rápido)
-          const localCache = localStorage.getItem(`avatar_${user.id}`);
+          let localCache = null;
+          try {
+            localCache = localStorage.getItem(`avatar_${user.id}`);
+          } catch (e) {
+            console.warn("Erro ao ler localStorage:", e);
+          }
+          
           if (localCache && !force) {
             newAvatars[user.id] = localCache;
             continue;
@@ -55,7 +67,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             if (userDoc.exists() && userDoc.data().avatarUrl && !userDoc.data().avatarUrl.includes('picsum')) {
               const remoteAvatar = userDoc.data().avatarUrl;
               newAvatars[user.id] = remoteAvatar;
-              localStorage.setItem(`avatar_${user.id}`, remoteAvatar);
+              try {
+                localStorage.setItem(`avatar_${user.id}`, remoteAvatar);
+              } catch (e) {
+                console.warn("Erro ao escrever no localStorage:", e);
+              }
               continue;
             }
           }
@@ -76,7 +92,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             if (part.inlineData) {
               const b64 = `data:image/png;base64,${part.inlineData.data}`;
               newAvatars[user.id] = b64;
-              localStorage.setItem(`avatar_${user.id}`, b64);
+              try {
+                localStorage.setItem(`avatar_${user.id}`, b64);
+              } catch (e) {
+                console.warn("Erro ao escrever no localStorage:", e);
+              }
               generated = true;
               break;
             }

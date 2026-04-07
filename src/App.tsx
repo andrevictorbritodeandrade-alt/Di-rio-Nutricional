@@ -68,7 +68,9 @@ interface Recipe {
 }
 
 const App = () => {
+  console.log("App rendering...");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  console.log("Current User:", currentUser);
   const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas' | 'saude'>('diario');
   const [isDiaDeTreino, setIsDiaDeTreino] = useState(true);
   const [selectedMeal, setSelectedMeal] = useState<number | null>(null);
@@ -161,12 +163,12 @@ const App = () => {
       id: 1, 
       nome: "Pré-Treino", 
       hora: "05:15", 
-      desc: "Café preto + 1 banana", 
-      kcal: 90, 
+      desc: "2 ovos mexidos + 1 xícara de café preto (180ml) com adoçante", 
+      kcal: 140, 
       status: "pendente", 
-      target: { p: 2, c: 20, g: 0, kcal: 90 },
+      target: { p: 12, c: 1, g: 10, kcal: 140 },
       options: [
-        { id: 'A', title: "Café preto + 1 banana", p: 2, c: 20, g: 0, kcal: 90 },
+        { id: 'A', title: "2 ovos mexidos + café preto c/ adoçante", p: 12, c: 1, g: 10, kcal: 140 },
         { id: 'B', title: "Café preto + 2 fatias de pão integral", p: 6, c: 24, g: 2, kcal: 140 }
       ]
     },
@@ -174,12 +176,12 @@ const App = () => {
       id: 101, 
       nome: "Pequeno-almoço", 
       hora: "08:00", 
-      desc: "Pão Francês, Queijo e Mortadela", 
-      kcal: 245, 
+      desc: "Pão Francês, Queijo, Mortadela + 1 Banana", 
+      kcal: 335, 
       status: "pendente", 
-      target: { p: 11, c: 30, g: 9, kcal: 245 },
+      target: { p: 12, c: 50, g: 9, kcal: 335 },
       options: [
-        { id: 'A', title: "Pão Francês + Queijo + Mortadela", p: 11, c: 30, g: 9, kcal: 245 },
+        { id: 'A', title: "Pão Francês + Queijo + Mortadela + 1 Banana", p: 12, c: 50, g: 9, kcal: 335 },
         { id: 'B', title: "Omelete de 2 ovos + 1 fatia de pão", p: 18, c: 15, g: 12, kcal: 240 },
         { id: 'C', title: "Iogurte + Granola + Fruta", p: 12, c: 35, g: 6, kcal: 242 }
       ]
@@ -596,7 +598,25 @@ const App = () => {
   const remainingKcal = CALORIE_GOAL - totalKcal;
 
   if (!currentUser) {
-    return <Login onLogin={setCurrentUser} />;
+    try {
+      return <Login onLogin={setCurrentUser} />;
+    } catch (error) {
+      console.error("Erro ao renderizar Login:", error);
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-stone-50 p-4 text-center">
+          <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md">
+            <h2 className="text-xl font-black text-red-600 mb-4 uppercase">Erro de Carregamento</h2>
+            <p className="text-stone-600 text-sm mb-6">Ocorreu um erro ao carregar a tela de login. Por favor, tente recarregar a página.</p>
+            <pre className="text-[10px] bg-stone-100 p-4 rounded-xl overflow-auto text-left mb-6">
+              {error instanceof Error ? error.message : String(error)}
+            </pre>
+            <button onClick={() => window.location.reload()} className="w-full py-3 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest">
+              Recarregar
+            </button>
+          </div>
+        </div>
+      );
+    }
   }
 
   if (!currentUser.anamnesisCompleted) {
@@ -1204,17 +1224,17 @@ const App = () => {
                         className="px-5 pb-5 pt-2 border-t border-stone-50 bg-stone-50/30"
                       >
                         <div className="grid grid-cols-3 gap-4 mb-4">
-                          <div className="text-center p-3 bg-white rounded-2xl border border-stone-100 shadow-sm">
-                            <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Proteína</p>
-                            <p className="text-sm font-black text-slate-900">{isConfirmed && confirmedMeals[meal.id] ? confirmedMeals[meal.id].p : meal.target.p}g</p>
+                          <div className="text-center p-3 bg-blue-50 rounded-2xl border border-blue-100 shadow-sm">
+                            <p className="text-[8px] font-black text-blue-400 uppercase mb-1">Proteína</p>
+                            <p className="text-sm font-black text-blue-700">{isConfirmed && confirmedMeals[meal.id] ? confirmedMeals[meal.id].p : meal.target.p}g</p>
                           </div>
-                          <div className="text-center p-3 bg-white rounded-2xl border border-stone-100 shadow-sm">
-                            <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Carbo</p>
-                            <p className="text-sm font-black text-slate-900">{isConfirmed && confirmedMeals[meal.id] ? confirmedMeals[meal.id].c : meal.target.c}g</p>
+                          <div className="text-center p-3 bg-amber-50 rounded-2xl border border-amber-100 shadow-sm">
+                            <p className="text-[8px] font-black text-amber-500 uppercase mb-1">Carbo</p>
+                            <p className="text-sm font-black text-amber-700">{isConfirmed && confirmedMeals[meal.id] ? confirmedMeals[meal.id].c : meal.target.c}g</p>
                           </div>
-                          <div className="text-center p-3 bg-white rounded-2xl border border-stone-100 shadow-sm">
-                            <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Gordura</p>
-                            <p className="text-sm font-black text-slate-900">{isConfirmed && confirmedMeals[meal.id] ? confirmedMeals[meal.id].g : meal.target.g}g</p>
+                          <div className="text-center p-3 bg-rose-50 rounded-2xl border border-rose-100 shadow-sm">
+                            <p className="text-[8px] font-black text-rose-400 uppercase mb-1">Gordura</p>
+                            <p className="text-sm font-black text-rose-700">{isConfirmed && confirmedMeals[meal.id] ? confirmedMeals[meal.id].g : meal.target.g}g</p>
                           </div>
                         </div>
 
@@ -1280,15 +1300,15 @@ const App = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                {[250, 340, 500].map((amount) => (
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                {[100, 250, 340, 500, 1000].map((amount) => (
                   <button
                     key={amount}
                     onClick={() => setWaterIntake(prev => prev + amount)}
                     className="py-4 bg-stone-50 hover:bg-blue-50 border border-stone-100 hover:border-blue-200 rounded-2xl text-slate-600 hover:text-blue-600 transition-all active:scale-95 flex flex-col items-center gap-1"
                   >
                     <Plus className="w-4 h-4" />
-                    <span className="text-xs font-black font-montserrat">{amount}ml</span>
+                    <span className="text-[10px] font-black font-montserrat">{amount}ml</span>
                   </button>
                 ))}
               </div>
