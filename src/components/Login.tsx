@@ -110,49 +110,31 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     generateAvatars();
   }, []);
 
-  const handleLogin = async () => {
-    if (selectedUser && password === selectedUser.password) {
-      setIsLoggingIn(true);
-      try {
-        const email = `${selectedUser.id}@diario.com`;
-        // Tenta logar, se falhar tenta criar (para o primeiro acesso)
-        try {
-          await signInWithEmailAndPassword(auth, email, password + "extra_salt");
-        } catch (err: any) {
-          if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-            await createUserWithEmailAndPassword(auth, email, password + "extra_salt");
-          } else {
-            throw err;
-          }
-        }
+  const handleLogin = async (user: User) => {
+    setIsLoggingIn(true);
+    try {
+      onLogin({
+        ...user,
+        avatarUrl: avatars[user.id]
+      });
 
-        onLogin({
-          ...selectedUser,
-          avatarUrl: avatars[selectedUser.id]
-        });
-
-        // Salva o avatar no Firestore após o login bem-sucedido para cache
-        if (avatars[selectedUser.id] && !avatars[selectedUser.id].includes('picsum')) {
-          const { password, ...userData } = selectedUser;
-          await setDoc(doc(db, 'users', selectedUser.id), {
-            ...userData,
-            avatarUrl: avatars[selectedUser.id]
-          }, { merge: true });
-        }
-      } catch (err: any) {
-        console.error("Erro ao autenticar no Firebase:", err);
-        if (err.code === 'auth/operation-not-allowed') {
-          setError('O login por E-mail/Senha não está ativado no Firebase Console. Por favor, ative-o em Authentication > Sign-in method.');
-        } else {
-          setError('Erro de conexão com o servidor de dados.');
-        }
-        setTimeout(() => setError(''), 5000);
-      } finally {
-        setIsLoggingIn(false);
+      // Salva o avatar no Firestore para cache (sem necessidade de auth agora)
+      if (avatars[user.id] && !avatars[user.id].includes('picsum')) {
+        const { password, ...userData } = user;
+        await setDoc(doc(db, 'users', user.id), {
+          ...userData,
+          avatarUrl: avatars[user.id]
+        }, { merge: true });
       }
-    } else {
-      setError('Senha incorreta!');
-      setTimeout(() => setError(''), 2000);
+    } catch (err: any) {
+      console.error("Erro ao salvar dados no Firestore:", err);
+      // Mesmo se falhar o cache, faz o login local
+      onLogin({
+        ...user,
+        avatarUrl: avatars[user.id]
+      });
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -213,15 +195,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               transition={{ delay: 0.3 + (idx * 0.1) }}
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                setSelectedUser(user);
-                setPassword('');
-              }}
-              className={`flex flex-col items-center gap-5 p-8 rounded-[3rem] transition-all duration-500 relative group ${
-                selectedUser?.id === user.id 
-                ? 'bg-blue-600 text-white shadow-2xl shadow-blue-200 ring-4 ring-blue-100' 
-                : 'bg-white text-slate-800 shadow-xl shadow-stone-200/50 border border-stone-100'
-              }`}
+              onClick={() => handleLogin(user)}
+              className={`flex flex-col items-center gap-5 p-8 rounded-[3rem] transition-all duration-500 relative group bg-white text-slate-800 shadow-xl shadow-stone-200/50 border border-stone-100 hover:border-blue-600`}
             >
               <div className="w-28 h-28 rounded-full overflow-hidden bg-stone-50 border-4 border-white shadow-inner flex items-center justify-center relative z-10">
                 {loadingAvatars ? (
@@ -249,50 +224,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </div>
 
         <AnimatePresence mode="wait">
-          {selectedUser && (
+          {isLoggingIn && (
             <motion.div
-              key="auth-form"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6 pt-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center justify-center gap-3 text-blue-600 font-black uppercase tracking-widest text-xs pt-8"
             >
-              <div className="relative group">
-                <input
-                  type="password"
-                  placeholder="DIGITE SUA SENHA"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  className="w-full h-16 pl-14 pr-4 rounded-[2rem] border-2 border-stone-100 focus:border-blue-600 focus:ring-0 bg-white text-center font-black tracking-[0.15em] text-lg shadow-lg transition-all placeholder:tracking-normal"
-                />
-                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-blue-600 transition-colors" size={24} />
-              </div>
-              
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-red-50 text-red-500 p-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-red-100"
-                >
-                  {error}
-                </motion.div>
-              )}
-
-              <button
-                disabled={isLoggingIn}
-                onClick={handleLogin}
-                className="w-full h-16 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-sm active:scale-95 transition-all shadow-xl shadow-slate-200 hover:bg-blue-600 disabled:opacity-50 flex items-center justify-center gap-3"
-              >
-                {isLoggingIn ? (
-                  <>
-                    <Loader2 className="animate-spin" size={20} />
-                    <span>Autenticando...</span>
-                  </>
-                ) : (
-                  "Acessar Diário"
-                )}
-              </button>
+              <Loader2 className="animate-spin" size={20} />
+              <span>Carregando Diário...</span>
             </motion.div>
           )}
         </AnimatePresence>
