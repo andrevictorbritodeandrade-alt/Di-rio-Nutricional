@@ -139,10 +139,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             avatarUrl: avatars[selectedUser.id]
           }, { merge: true });
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Erro ao autenticar no Firebase:", err);
-        setError('Erro de conexão com o servidor de dados.');
-        setTimeout(() => setError(''), 3000);
+        if (err.code === 'auth/operation-not-allowed') {
+          setError('O login por E-mail/Senha não está ativado no Firebase Console. Por favor, ative-o em Authentication > Sign-in method.');
+        } else {
+          setError('Erro de conexão com o servidor de dados.');
+        }
+        setTimeout(() => setError(''), 5000);
       } finally {
         setIsLoggingIn(false);
       }
