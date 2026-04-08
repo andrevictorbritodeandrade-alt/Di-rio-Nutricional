@@ -647,7 +647,7 @@ const App = () => {
                 )}
               </div>
               <div>
-                <h1 className="text-2xl font-[1000] text-slate-900 tracking-[-0.08em] font-montserrat uppercase flex">
+                <h1 className="text-lg sm:text-xl font-[1000] text-slate-900 tracking-[-0.08em] font-montserrat uppercase flex flex-wrap">
                   <span>DIÁRIO</span>
                   <span className="text-blue-600">NUTRICIONAL</span>
                 </h1>

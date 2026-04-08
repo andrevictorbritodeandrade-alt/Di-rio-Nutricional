@@ -37,11 +37,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error("API Key não configurada para geração de avatares.");
+      console.error("ERRO: GEMINI_API_KEY não encontrada. Verifique as variáveis de ambiente.");
       setLoadingAvatars(false);
       setIsRefreshing(false);
       return;
     }
+    console.log("API Key encontrada, iniciando geração...");
     const ai = new GoogleGenAI({ apiKey });
     const newAvatars: Record<string, string> = { ...avatars };
 
@@ -77,14 +78,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           }
 
           // 3. Tenta gerar com a IA
+          console.log(`Gerando avatar para ${user.name}...`);
           const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
+            model: 'gemini-2.0-flash',
             contents: {
               parts: [{ text: user.avatarDesc }],
             },
-            config: {
-              imageConfig: { aspectRatio: "1:1" }
-            }
           });
 
           let generated = false;
@@ -106,7 +105,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             newAvatars[user.id] = user.avatarUrl || `https://picsum.photos/seed/${user.id}/200/200`;
           }
           
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
         } catch (err: any) {
           if (err?.status === 'RESOURCE_EXHAUSTED' || err?.message?.includes('429')) {
@@ -170,14 +169,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         className="w-full max-w-md text-center space-y-12 relative z-10"
       >
         <div className="space-y-4">
-          <h1 className="text-5xl font-[1000] text-slate-900 tracking-[-0.08em] font-montserrat uppercase flex items-center justify-center gap-1">
-            <span className="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-100">
-              <Utensils size={32} />
+          <h1 className="text-3xl sm:text-4xl font-[1000] text-slate-900 tracking-[-0.08em] font-montserrat uppercase flex items-center justify-center gap-1 flex-wrap">
+            <span className="bg-blue-600 text-white p-1.5 rounded-lg shadow-lg shadow-blue-100 shrink-0">
+              <Utensils size={24} />
             </span>
-            <span className="flex">
+            <div className="flex flex-wrap justify-center">
               <span>DIÁRIO</span>
               <span className="text-blue-600">NUTRICIONAL</span>
-            </span>
+            </div>
           </h1>
           <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">
             Escolha seu perfil para continuar
