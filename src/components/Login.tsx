@@ -137,12 +137,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         avatarUrl: avatars[user.id]
       });
 
-      // Salva o avatar no Firestore para cache (sem necessidade de auth agora)
-      if (avatars[user.id] && !avatars[user.id].includes('picsum')) {
+      // Salva o usuário no Firestore (sem salvar o avatar base64 para evitar exceder o limite de 1MB)
+      if (avatars[user.id]) {
         const { password, ...userData } = user;
         await setDoc(doc(db, 'users', user.id), {
           ...userData,
-          avatarUrl: avatars[user.id]
         }, { merge: true });
       }
     } catch (err: any) {
