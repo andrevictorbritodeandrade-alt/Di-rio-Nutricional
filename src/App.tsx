@@ -170,7 +170,18 @@ const App = () => {
 
   const CALORIE_GOAL = currentUser?.dietPlan?.kcalGoal || 1500; 
 
-  const rotinaTreino = currentUser?.dietPlan?.meals || [
+  const rotinaTreino = currentUser?.dietPlan?.meals?.map((meal: any, index: number) => ({
+    id: meal.id || index + 1,
+    nome: meal.nome || meal.title || `Refeição ${index + 1}`,
+    hora: meal.hora || `${String(8 + index * 3).padStart(2, '0')}:00`,
+    desc: meal.desc || meal.title || "Refeição sugerida",
+    kcal: meal.kcal || 0,
+    status: meal.status || "pendente",
+    target: meal.target || { p: 0, c: 0, g: 0, kcal: meal.kcal || 0 },
+    options: meal.options || [
+      { id: 'A', title: meal.title || "Opção Padrão", p: 0, c: 0, g: 0, kcal: meal.kcal || 0 }
+    ]
+  })) || [
     { 
       id: 1, 
       nome: "Pré-Treino", 
@@ -252,7 +263,18 @@ const App = () => {
     },
   ];
 
-  const rotinaDescanso = currentUser?.dietPlan?.meals || [
+  const rotinaDescanso = currentUser?.dietPlan?.meals?.map((meal: any, index: number) => ({
+    id: meal.id || index + 100,
+    nome: meal.nome || meal.title || `Refeição ${index + 1}`,
+    hora: meal.hora || `${String(8 + index * 3).padStart(2, '0')}:00`,
+    desc: meal.desc || meal.title || "Refeição sugerida",
+    kcal: meal.kcal || 0,
+    status: meal.status || "pendente",
+    target: meal.target || { p: 0, c: 0, g: 0, kcal: meal.kcal || 0 },
+    options: meal.options || [
+      { id: 'A', title: meal.title || "Opção Padrão", p: 0, c: 0, g: 0, kcal: meal.kcal || 0 }
+    ]
+  })) || [
     { 
       id: 201, 
       nome: "Pequeno-almoço", 
