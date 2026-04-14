@@ -1,8 +1,29 @@
+export interface Medication {
+  name: string;
+  dosage: string;
+  frequency: string;
+}
+
+export interface Workout {
+  id: string;
+  date: string;
+  activity: string;
+  duration: string;
+  calories: number;
+}
+
 export interface HealthMeasurement {
   time: string;
   glucose: string;
   bloodPressure: string;
   heartRate: string;
+}
+
+export interface ProgressEntry {
+  date: string;
+  weight: number;
+  muscleMass: number;
+  bodyFat: number;
 }
 
 export interface User {

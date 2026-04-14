@@ -25,10 +25,15 @@ import {
   LogOut,
   Activity,
   Heart,
-  Droplets
+  Droplets,
+  Bell,
+  BellRing,
+  User as UserIcon,
+  ChevronRight
 } from 'lucide-react';
 
-import { GoogleGenAI, Type } from "@google/genai";
+import ProgressTracker from './components/ProgressTracker';
+import PhysicalAssessment from './components/PhysicalAssessment';
 import { motion } from 'motion/react';
 import { 
   LineChart, 
@@ -71,7 +76,8 @@ const App = () => {
   console.log("App rendering...");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   console.log("Current User:", currentUser);
-  const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas' | 'saude'>('diario');
+  const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas' | 'saude' | 'progresso'>('diario');
+  const [showPhysicalAssessment, setShowPhysicalAssessment] = useState(false);
   const [isDiaDeTreino, setIsDiaDeTreino] = useState(true);
   const [selectedMeal, setSelectedMeal] = useState<number | null>(null);
   const [currentDayName, setCurrentDayName] = useState('');
@@ -90,7 +96,14 @@ const App = () => {
   
   // REGISTO DE ÁGUA: Começa zerado conforme pedido
   const [waterIntake, setWaterIntake] = useState(0);
+  const [waterGoal, setWaterGoal] = useState(3000); // Meta de água personalizável
+  const [isEditingWaterGoal, setIsEditingWaterGoal] = useState(false);
+  const [tempWaterGoal, setTempWaterGoal] = useState(3000);
   
+  // NOTIFICAÇÕES
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notifiedMeals, setNotifiedMeals] = useState<number[]>([]);
+
   // AFERIÇÕES DE SAÚDE
   const [healthMeasurements, setHealthMeasurements] = useState<any[]>([]);
   
@@ -156,7 +169,6 @@ const App = () => {
   ];
 
   const CALORIE_GOAL = currentUser?.dietPlan?.kcalGoal || 1500; 
-  const WATER_GOAL = 3000; 
 
   const rotinaTreino = currentUser?.dietPlan?.meals || [
     { 
@@ -311,6 +323,62 @@ const App = () => {
   const cardapioAtual = isDiaDeTreino ? rotinaTreino : rotinaDescanso;
 
   useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      setNotificationsEnabled(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!notificationsEnabled) return;
+
+    const checkNotifications = () => {
+      const now = new Date();
+      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+      cardapioAtual.forEach(meal => {
+        if (meal.hora === currentTime && !notifiedMeals.includes(meal.id)) {
+          new Notification(`Hora da Refeição: ${meal.nome}`, {
+            body: meal.desc,
+            icon: '/favicon.ico'
+          });
+          setNotifiedMeals(prev => [...prev, meal.id]);
+        }
+      });
+    };
+
+    checkNotifications();
+    const timer = setInterval(checkNotifications, 60000);
+    return () => clearInterval(timer);
+  }, [notificationsEnabled, notifiedMeals, cardapioAtual]);
+
+  const toggleNotifications = async () => {
+    if (!('Notification' in window)) {
+      alert('Este navegador não suporta notificações.');
+      return;
+    }
+
+    if (notificationsEnabled) {
+      setNotificationsEnabled(false);
+      alert('Notificações desativadas.');
+    } else {
+      if (Notification.permission === 'granted') {
+        setNotificationsEnabled(true);
+        new Notification('Notificações ativadas!', { body: 'Você será lembrado das suas refeições.' });
+      } else if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          setNotificationsEnabled(true);
+          new Notification('Notificações ativadas!', { body: 'Você será lembrado das suas refeições.' });
+        } else {
+          alert('Permissão para notificações foi negada.');
+        }
+      } else {
+        alert('As notificações estão bloqueadas no seu navegador. Permita nas configurações.');
+      }
+    }
+  };
+
+  useEffect(() => {
     const updateTimeContext = () => {
       const days = [
         'Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'
@@ -353,6 +421,7 @@ const App = () => {
       const unsubscribe = subscribeToDailyLog(currentUser.id, today, (data) => {
         if (data.confirmedMeals) setConfirmedMeals(data.confirmedMeals);
         if (data.waterIntake !== undefined) setWaterIntake(data.waterIntake);
+        if (data.waterGoal !== undefined) setWaterGoal(data.waterGoal);
         if (data.healthMeasurements) setHealthMeasurements(data.healthMeasurements);
       });
       return () => unsubscribe();
@@ -365,7 +434,7 @@ const App = () => {
         setIsSyncing(true);
         const today = new Date().toISOString().split('T')[0];
         try {
-          await saveDailyLog(currentUser.id, today, { confirmedMeals, waterIntake, healthMeasurements });
+          await saveDailyLog(currentUser.id, today, { confirmedMeals, waterIntake, waterGoal, healthMeasurements });
         } catch (error) {
           console.error('Error syncing to cloud:', error);
         } finally {
@@ -374,7 +443,7 @@ const App = () => {
       };
       saveToCloud();
     }
-  }, [confirmedMeals, waterIntake, healthMeasurements, currentUser]);
+  }, [confirmedMeals, waterIntake, waterGoal, healthMeasurements, currentUser]);
 
   const confirmChoice = (mealId: number, choice: string, data: any) => {
     setConfirmedMeals(prev => ({ 
@@ -660,6 +729,15 @@ const App = () => {
             </div>
             <div className="flex items-center gap-2">
               <button 
+                onClick={toggleNotifications}
+                className={`w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-transform ${
+                  notificationsEnabled ? 'bg-blue-100 text-blue-600' : 'bg-stone-100 text-stone-500'
+                }`}
+                title="Notificações de Refeição"
+              >
+                {notificationsEnabled ? <BellRing size={18} /> : <Bell size={18} />}
+              </button>
+              <button 
                 onClick={() => setCurrentUser(null)}
                 className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 active:scale-95 transition-transform"
               >
@@ -780,11 +858,20 @@ const App = () => {
             >
               <Activity className="w-3.5 h-3.5" /> SAÚDE
             </button>
+            <button 
+              onClick={() => setActiveTab('progresso')}
+              className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 uppercase tracking-widest ${
+                activeTab === 'progresso' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+              }`}
+            >
+              <TrendingDown className="w-3.5 h-3.5" /> PROGRESSO
+            </button>
           </div>
         </div>
       </header>
 
       <div className="max-w-xl mx-auto space-y-4 pt-4 px-3">
+        {activeTab === 'progresso' && <ProgressTracker />}
         {activeTab === 'saude' && (
           <div className="space-y-6 pb-24">
             <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-200">
@@ -801,6 +888,28 @@ const App = () => {
                 <div className="text-right">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mês Atual</p>
                   <p className="text-sm font-black text-slate-900 uppercase">{new Date().toLocaleString('pt-BR', { month: 'long' })}</p>
+                </div>
+              </div>
+
+              {/* CARD DE AVALIAÇÃO FÍSICA */}
+              <div 
+                onClick={() => setShowPhysicalAssessment(true)}
+                className="mb-10 bg-gradient-to-br from-blue-600 to-sky-500 p-6 rounded-[2rem] shadow-lg shadow-blue-200 cursor-pointer hover:scale-[1.02] transition-transform relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                <div className="flex justify-between items-center relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-white backdrop-blur-sm">
+                      <UserIcon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-white uppercase tracking-widest mb-1">Avaliação Física</h3>
+                      <p className="text-[10px] font-bold text-blue-100 uppercase">Bioimpedância & Métricas</p>
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
                 </div>
               </div>
 
@@ -994,8 +1103,30 @@ const App = () => {
               </div>
             </div>
 
+            {/* SEÇÃO DE MEDICAÇÕES */}
+            <div className="bg-white rounded-[2rem] shadow-sm border border-stone-200 p-6 mt-6">
+              <h3 className="text-sm font-black uppercase tracking-wider font-montserrat mb-4">Medicações e Vitaminas</h3>
+              <div className="space-y-3">
+                {[
+                  { name: 'Bup (Bupropiona) 150mg XL', dosage: '150mg', frequency: '2x ao dia' },
+                  { name: 'Topiramato', dosage: '100mg', frequency: '2x ao dia' },
+                  { name: 'Sertralina', dosage: '50mg', frequency: '2x ao dia' },
+                  { name: 'Venvanse (Genérico)', dosage: '30mg', frequency: '1x ao dia' },
+                  { name: 'Vitaminas Bariátrica', dosage: '-', frequency: '2x ao dia' },
+                ].map((med, i) => (
+                  <div key={i} className="flex justify-between items-center p-3 bg-stone-50 rounded-xl border border-stone-100">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">{med.name}</p>
+                      <p className="text-[10px] text-slate-500">{med.dosage}</p>
+                    </div>
+                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{med.frequency}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* SEÇÃO DE AFERIÇÕES DE SAÚDE */}
-            <div className="bg-white rounded-[2rem] shadow-sm border border-stone-200 p-6 relative">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-stone-200 p-6 relative mt-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500">
@@ -1192,16 +1323,19 @@ const App = () => {
                       <div className="flex-1" onClick={() => setSelectedMeal(selectedMeal === meal.id ? null : meal.id)}>
                         <div className="flex justify-between items-start">
                           <div className="flex items-center gap-2">
-                            <div>
+                            <div className="relative">
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{meal.hora}</p>
-                              <h3 className="text-base font-black text-slate-900 font-montserrat">{meal.nome}</h3>
+                              {activeMealId === meal.id && (
+                                <div className="absolute -left-2 -top-1 w-2 h-2 bg-blue-500 rounded-full animate-ping" />
+                              )}
                             </div>
-                            {activeMealId === meal.id && (
-                              <div className="bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full text-[8px] font-black uppercase animate-pulse">
-                                Próxima
-                              </div>
-                            )}
+                            <h3 className={`text-base font-black font-montserrat ${activeMealId === meal.id ? 'text-blue-600 scale-105 transition-transform' : 'text-slate-900'}`}>{meal.nome}</h3>
                           </div>
+                          {activeMealId === meal.id && (
+                            <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-200 animate-pulse">
+                              Hora de comer!
+                            </div>
+                          )}
                           <div className="text-right">
                             <p className="text-sm font-black text-slate-900 font-montserrat">{isConfirmed && confirmedMeals[meal.id] ? confirmedMeals[meal.id].kcal : meal.kcal} kcal</p>
                             <p className="text-[10px] font-bold text-slate-400 uppercase">Alvo: {meal.target.kcal}</p>
@@ -1287,23 +1421,49 @@ const App = () => {
                   </div>
                   <div>
                     <h2 className="text-xl font-black text-slate-900 font-montserrat">Hidratação</h2>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Meta: {WATER_GOAL}ml</p>
+                    {isEditingWaterGoal ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <input 
+                          type="number" 
+                          value={tempWaterGoal} 
+                          onChange={(e) => setTempWaterGoal(Number(e.target.value))}
+                          className="w-20 p-1.5 border border-blue-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500"
+                          autoFocus
+                        />
+                        <button 
+                          onClick={() => { setWaterGoal(tempWaterGoal); setIsEditingWaterGoal(false); }} 
+                          className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors"
+                        >
+                          Salvar
+                        </button>
+                      </div>
+                    ) : (
+                      <div 
+                        className="flex items-center gap-1 cursor-pointer group mt-0.5" 
+                        onClick={() => { setTempWaterGoal(waterGoal); setIsEditingWaterGoal(true); }}
+                      >
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest group-hover:text-blue-500 transition-colors">
+                          Meta: {waterGoal}ml
+                        </p>
+                        <Edit3 size={12} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-black text-blue-600 font-montserrat">{waterIntake}ml</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Faltam {Math.max(0, WATER_GOAL - waterIntake)}ml</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Faltam {Math.max(0, waterGoal - waterIntake)}ml</p>
                 </div>
               </div>
               
               <div className="relative h-4 bg-stone-100 rounded-full overflow-hidden mb-8">
                 <div 
                   className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-1000 ease-out rounded-full shadow-[0_0_20px_rgba(59,130,246,0.5)]"
-                  style={{ width: `${Math.min((waterIntake / WATER_GOAL) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((waterIntake / waterGoal) * 100, 100)}%` }}
                 />
               </div>
 
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
                 {[100, 250, 340, 500, 1000].map((amount) => (
                   <button
                     key={amount}
@@ -1314,6 +1474,25 @@ const App = () => {
                     <span className="text-[10px] font-black font-montserrat">{amount}ml</span>
                   </button>
                 ))}
+                <div className="py-2 px-2 bg-stone-50 border border-stone-100 rounded-2xl flex flex-col items-center justify-center gap-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Outro</span>
+                  <div className="flex items-center gap-1 w-full">
+                    <input 
+                      type="number" 
+                      placeholder="ml"
+                      className="w-full p-1 text-center text-xs font-bold border border-stone-200 rounded-lg focus:outline-none focus:border-blue-500"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const val = Number(e.currentTarget.value);
+                          if (val > 0) {
+                            setWaterIntake(prev => prev + val);
+                            e.currentTarget.value = '';
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1526,6 +1705,11 @@ const App = () => {
       <footer className="w-full text-center p-4 text-[10px] text-stone-400 font-medium uppercase tracking-widest bg-stone-50 border-t border-stone-100">
         © {new Date().getFullYear()} Todos os direitos registrados estão com André Victor Brito de Andrade
       </footer>
+
+      {/* MODAL DE AVALIAÇÃO FÍSICA */}
+      {showPhysicalAssessment && (
+        <PhysicalAssessment onClose={() => setShowPhysicalAssessment(false)} />
+      )}
     </div>
   );
 };
