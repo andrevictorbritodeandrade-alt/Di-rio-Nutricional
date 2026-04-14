@@ -823,50 +823,6 @@ const App = () => {
               </div>
             </div>
           </div>
-
-          {/* TABS NAVEGAÇÃO */}
-          <div className="flex bg-stone-100 p-1.5 rounded-2xl">
-            <button 
-              onClick={() => setActiveTab('diario')}
-              className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 uppercase tracking-widest ${
-                activeTab === 'diario' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              <Utensils className="w-3.5 h-3.5" /> DIÁRIO
-            </button>
-            <button 
-              onClick={() => setActiveTab('historico')}
-              className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 uppercase tracking-widest ${
-                activeTab === 'historico' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              <History className="w-3.5 h-3.5" /> HISTÓRICO
-            </button>
-            <button 
-              onClick={() => setActiveTab('receitas')}
-              className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 uppercase tracking-widest ${
-                activeTab === 'receitas' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              <ChefHat className="w-3.5 h-3.5" /> RECEITAS
-            </button>
-            <button 
-              onClick={() => setActiveTab('saude')}
-              className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 uppercase tracking-widest ${
-                activeTab === 'saude' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5" /> SAÚDE
-            </button>
-            <button 
-              onClick={() => setActiveTab('progresso')}
-              className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 uppercase tracking-widest ${
-                activeTab === 'progresso' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              <TrendingDown className="w-3.5 h-3.5" /> PROGRESSO
-            </button>
-          </div>
         </div>
       </header>
 
@@ -1647,7 +1603,7 @@ const App = () => {
       </div>
 
       {/* Footer Chat Style Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-[60]">
+      <div className="fixed bottom-[88px] left-0 right-0 bg-white border-t border-stone-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-[40]">
         <div className="max-w-xl mx-auto p-4">
           {selectedImage && (
             <div className="mb-3 relative w-20 h-20">
@@ -1702,9 +1658,53 @@ const App = () => {
           </div>
         </div>
       </div>
-      <footer className="w-full text-center p-4 text-[10px] text-stone-400 font-medium uppercase tracking-widest bg-stone-50 border-t border-stone-100">
+      <footer className="w-full text-center p-4 text-[10px] text-stone-400 font-medium uppercase tracking-widest bg-stone-50 border-t border-stone-100 pb-28">
         © {new Date().getFullYear()} Todos os direitos registrados estão com André Victor Brito de Andrade
       </footer>
+
+      {/* NAVEGAÇÃO INFERIOR */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-stone-200 pb-safe pt-2 px-6 z-50 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <div className="max-w-xl mx-auto flex justify-between items-center h-20">
+          <button 
+            onClick={() => setActiveTab('diario')}
+            className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'diario' ? 'text-blue-600' : 'text-stone-400'}`}
+          >
+            <Utensils className="w-6 h-6" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Diário</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('historico')}
+            className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'historico' ? 'text-blue-600' : 'text-stone-400'}`}
+          >
+            <History className="w-6 h-6" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Histórico</span>
+          </button>
+
+          <button 
+            onClick={() => setShowPhysicalAssessment(true)}
+            className="w-14 h-14 bg-gradient-to-br from-blue-600 to-sky-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-blue-200 -mt-8 hover:scale-105 transition-transform border-4 border-white"
+          >
+            <UserIcon className="w-6 h-6" />
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('saude')}
+            className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'saude' ? 'text-blue-600' : 'text-stone-400'}`}
+          >
+            <Activity className="w-6 h-6" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Saúde</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('progresso')}
+            className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'progresso' ? 'text-blue-600' : 'text-stone-400'}`}
+          >
+            <TrendingDown className="w-6 h-6" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Progresso</span>
+          </button>
+        </div>
+      </nav>
 
       {/* MODAL DE AVALIAÇÃO FÍSICA */}
       {showPhysicalAssessment && (
