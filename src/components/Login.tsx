@@ -168,33 +168,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         className="w-full max-w-md text-center space-y-12 relative z-10"
       >
         <div className="space-y-4">
-          <h1 className="text-3xl sm:text-4xl font-[1000] text-slate-900 tracking-[-0.08em] font-montserrat uppercase flex items-center justify-center gap-1 flex-wrap">
-            <span className="bg-blue-600 text-white p-1.5 rounded-lg shadow-lg shadow-blue-100 shrink-0">
-              <Utensils size={24} />
+          <h1 className="text-4xl sm:text-5xl font-[1000] text-slate-900 tracking-[-0.08em] font-montserrat uppercase flex items-center justify-center gap-1 flex-wrap">
+            <span className="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-100 shrink-0">
+              <Utensils size={32} />
             </span>
             <div className="flex flex-wrap justify-center">
               <span>DIÁRIO</span>
               <span className="text-blue-600">NUTRICIONAL</span>
             </div>
           </h1>
-          <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">
+          <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs">
             Escolha seu perfil para continuar
           </p>
-          
-          <button 
-            onClick={() => generateAvatars(true)}
-            disabled={isRefreshing || loadingAvatars}
-            className="text-[9px] font-black text-blue-600 uppercase tracking-widest hover:underline disabled:opacity-50 flex items-center justify-center gap-2 mx-auto mt-2"
-          >
-            {isRefreshing ? (
-              <>
-                <Loader2 size={12} className="animate-spin" />
-                <span>Regerando...</span>
-              </>
-            ) : (
-              "Regerar Avatares Disney"
-            )}
-          </button>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
