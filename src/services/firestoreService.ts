@@ -28,7 +28,7 @@ export const getUserData = async (userId: string): Promise<User | null> => {
 
 export const saveDailyLog = async (userId: string, date: string, data: any) => {
   try {
-    await setDoc(doc(db, 'users', userId, 'dailyLogs', date), data, { merge: true });
+    await setDoc(doc(db, 'users', userId, 'dailyLogs', date), data);
   } catch (error) {
     console.error('Error saving daily log:', error);
     throw error;
@@ -40,6 +40,28 @@ export const subscribeToDailyLog = (userId: string, date: string, callback: (dat
   return onSnapshot(docRef, (doc) => {
     if (doc.exists()) {
       callback(doc.data());
+    } else {
+      callback(null);
+    }
+  });
+};
+
+export const saveProgressData = async (userId: string, data: any) => {
+  try {
+    await setDoc(doc(db, 'users', userId, 'progress', 'main'), data);
+  } catch (error) {
+    console.error('Error saving progress data:', error);
+    throw error;
+  }
+};
+
+export const subscribeToProgressData = (userId: string, callback: (data: any) => void) => {
+  const docRef = doc(db, 'users', userId, 'progress', 'main');
+  return onSnapshot(docRef, (doc) => {
+    if (doc.exists()) {
+      callback(doc.data());
+    } else {
+      callback(null);
     }
   });
 };

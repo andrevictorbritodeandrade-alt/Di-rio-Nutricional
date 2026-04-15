@@ -10,9 +10,10 @@ import {
   Legend,
 } from 'recharts';
 import { Target, TrendingDown, Upload, Dumbbell, RefreshCw, Activity } from 'lucide-react';
-import { ProgressEntry, Workout } from '../types';
+import { ProgressEntry, Workout, User } from '../types';
 import { analyzeWorkoutScreenshot } from '../services/visionService';
 import { connectGoogleFit, fetchTodayWorkouts } from '../services/googleFitService';
+import { saveProgressData, subscribeToProgressData } from '../services/firestoreService';
 
 export const initialData: ProgressEntry[] = [
   { date: '17/03', weight: 99, muscleMass: 35, bodyFat: 28 },
@@ -21,14 +22,40 @@ export const initialData: ProgressEntry[] = [
   { date: '07/04', weight: 102, muscleMass: 35, bodyFat: 29.5 },
 ];
 
-const ProgressTracker: React.FC = () => {
+interface ProgressTrackerProps {
+  currentUser?: User;
+}
+
+const ProgressTracker: React.FC<ProgressTrackerProps> = ({ currentUser }) => {
   const [data, setData] = useState<ProgressEntry[]>(initialData);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [newWeight, setNewWeight] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSyncingFit, setIsSyncingFit] = useState(false);
   const [isConnectedToFit, setIsConnectedToFit] = useState(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      const unsubscribe = subscribeToProgressData(currentUser.id, (cloudData) => {
+        if (cloudData) {
+          if (cloudData.data) setData(cloudData.data);
+          if (cloudData.workouts) setWorkouts(cloudData.workouts);
+        }
+        setIsDataLoaded(true);
+      });
+      return () => unsubscribe();
+    } else {
+      setIsDataLoaded(true);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser && isDataLoaded) {
+      saveProgressData(currentUser.id, { data, workouts }).catch(console.error);
+    }
+  }, [data, workouts, currentUser, isDataLoaded]);
 
   useEffect(() => {
     const token = localStorage.getItem('googleFitToken');

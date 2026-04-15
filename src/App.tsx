@@ -445,21 +445,26 @@ const App = () => {
     return () => clearInterval(timer);
   }, [isDiaDeTreino, selectedMeal, cardapioAtual]);
 
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
   useEffect(() => {
     if (currentUser) {
       const today = new Date().toISOString().split('T')[0];
       const unsubscribe = subscribeToDailyLog(currentUser.id, today, (data) => {
-        if (data.confirmedMeals) setConfirmedMeals(data.confirmedMeals);
-        if (data.waterIntake !== undefined) setWaterIntake(data.waterIntake);
-        if (data.waterGoal !== undefined) setWaterGoal(data.waterGoal);
-        if (data.healthMeasurements) setHealthMeasurements(data.healthMeasurements);
+        if (data) {
+          if (data.confirmedMeals) setConfirmedMeals(data.confirmedMeals);
+          if (data.waterIntake !== undefined) setWaterIntake(data.waterIntake);
+          if (data.waterGoal !== undefined) setWaterGoal(data.waterGoal);
+          if (data.healthMeasurements) setHealthMeasurements(data.healthMeasurements);
+        }
+        setIsDataLoaded(true);
       });
       return () => unsubscribe();
     }
   }, [currentUser]);
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && isDataLoaded) {
       const saveToCloud = async () => {
         setIsSyncing(true);
         const today = new Date().toISOString().split('T')[0];
@@ -473,7 +478,7 @@ const App = () => {
       };
       saveToCloud();
     }
-  }, [confirmedMeals, waterIntake, waterGoal, healthMeasurements, currentUser]);
+  }, [confirmedMeals, waterIntake, waterGoal, healthMeasurements, currentUser, isDataLoaded]);
 
   const confirmChoice = (mealId: number, choice: string, data: any) => {
     setConfirmedMeals(prev => ({ 
@@ -539,15 +544,16 @@ const App = () => {
       let prompt = `Você é um assistente de nutrição pessoal para o(a) ${currentUser?.name}. 
       Analise o seguinte comando: "${inputText}".
       
-      REGRAS PARA REGISTRO EM LOTE:
-      - Se o usuário relatar várias refeições (ex: "comi café da manhã e almoço"), identifique cada uma.
-      - Retorne uma lista de registros no campo 'bulkMeals'.
-      - Para cada refeição identificada, tente associar ao ID correto do plano alimentar:
-        IDs: ${JSON.stringify(cardapioAtual.map(m => ({ id: m.id, nome: m.nome })))}
+      REGRAS PARA REGISTRO DE REFEIÇÃO:
+      - Sempre use o campo 'bulkMeals' para registrar refeições (mesmo que seja apenas uma).
+      - Para cada refeição identificada, você DEVE associar ao ID correto do plano alimentar abaixo, se for no mesmo período/tipo:
+        IDs do Cardápio: ${JSON.stringify(cardapioAtual.map(m => ({ id: m.id, nome: m.nome, desc: m.desc })))}
+      - Se o usuário comeu algo diferente do planejado, calcule as calorias (kcal), proteínas (p), carboidratos (c) e gorduras (g) reais do que ele comeu e retorne esses valores. O aplicativo irá substituir os valores planejados pelos seus valores calculados.
+      - Retorne o 'title' com a descrição exata do que ele comeu.
       
       Se houver uma imagem, analise os alimentos presentes, estime a gramatura total e por porção.
       Calcule os macronutrientes (P, C, G) e as Calorias.
-      Responda em JSON com uma mensagem motivadora e os dados nutricionais se for um registro de refeição.
+      Responda em JSON com uma mensagem motivadora.
       Se for apenas uma dúvida, responda apenas a mensagem.
       Se for registro de água (ex: "bebi 500ml"), retorne o campo 'waterAmount' com o valor em ml.
       Se for registro de saúde (ex: "glicemia 110, pressão 12/8, FC 70"), retorne o campo 'healthData' com os campos 'glucose', 'bloodPressure' e 'heartRate'.`;
@@ -857,7 +863,7 @@ const App = () => {
       </header>
 
       <div className="max-w-xl mx-auto space-y-4 pt-4 px-3">
-        {activeTab === 'progresso' && <ProgressTracker />}
+        {activeTab === 'progresso' && <ProgressTracker currentUser={currentUser} />}
         {activeTab === 'saude' && (
           <div className="space-y-6 pb-24">
             <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-200">
@@ -1392,6 +1398,40 @@ const App = () => {
                   </div>
                 );
               })}
+
+              {/* REFEIÇÕES EXTRAS (FORA DO CARDÁPIO) */}
+              {(Object.entries(confirmedMeals) as [string, MealData][])
+                .filter(([id]) => !cardapioAtual.find(m => m.id.toString() === id))
+                .map(([id, meal]) => (
+                  <div key={id} className="bg-white rounded-[2rem] shadow-sm border border-emerald-200 bg-emerald-50/10 overflow-hidden">
+                    <div className="p-5 flex items-center gap-4">
+                      <button 
+                        onClick={() => {
+                          const newConfirmed = { ...confirmedMeals };
+                          delete newConfirmed[id];
+                          setConfirmedMeals(newConfirmed);
+                        }}
+                        className="w-16 h-9 rounded-full flex items-center p-1 transition-all duration-300 bg-emerald-500 shadow-lg shadow-emerald-200"
+                      >
+                        <div className="w-7 h-7 rounded-full bg-white shadow-sm transform transition-transform duration-300 translate-x-7" />
+                      </button>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-black font-montserrat text-slate-900">Refeição Extra</h3>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-black text-slate-900 font-montserrat">{meal.kcal} kcal</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-1 font-medium">
+                          {meal.realDescription}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="h-1.5 w-full bg-emerald-500" />
+                  </div>
+                ))}
             </div>
 
             {/* WATER TRACKER (ATUALIZADO) */}
