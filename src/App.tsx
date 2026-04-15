@@ -35,6 +35,7 @@ import {
 import ProgressTracker from './components/ProgressTracker';
 import PhysicalAssessment from './components/PhysicalAssessment';
 import { motion } from 'motion/react';
+import { GoogleGenAI, Type } from "@google/genai";
 import { 
   LineChart, 
   Line, 

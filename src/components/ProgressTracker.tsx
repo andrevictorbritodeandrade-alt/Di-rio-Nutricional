@@ -112,9 +112,50 @@ const ProgressTracker: React.FC = () => {
   const targetWeight = 87;
   const weightToLose = currentWeight - targetWeight;
 
+  const exerciseGoal = 300;
+  const totalCaloriesBurned = workouts.reduce((sum, w) => sum + (w.calories || 0), 0);
+  const exerciseProgress = Math.min(100, (totalCaloriesBurned / exerciseGoal) * 100);
+
   return (
     <div className="p-4 space-y-6">
       <h2 className="text-2xl font-bold text-slate-900">Progresso</h2>
+      
+      {/* META DE EXERCÍCIOS DIÁRIA */}
+      <div className="bg-white rounded-[2rem] shadow-sm border border-stone-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500">
+              <Dumbbell className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider font-montserrat">Meta de Exercício</h3>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Diário</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-black text-slate-900 font-montserrat">{totalCaloriesBurned} / {exerciseGoal} kcal</p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="w-full bg-stone-100 rounded-full h-3 overflow-hidden">
+            <div 
+              className={`h-full transition-all duration-1000 ease-out rounded-full ${
+                exerciseProgress >= 100 ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]'
+              }`}
+              style={{ width: `${exerciseProgress}%` }}
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              {exerciseProgress >= 100 ? 'Meta Atingida! 🔥' : `Faltam ${Math.max(0, exerciseGoal - totalCaloriesBurned)} kcal`}
+            </p>
+            <p className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md">
+              {Math.round(exerciseProgress)}%
+            </p>
+          </div>
+        </div>
+      </div>
       
       {/* PROJEÇÃO DE METAS */}
       <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-6 rounded-[2rem] shadow-lg text-white">
