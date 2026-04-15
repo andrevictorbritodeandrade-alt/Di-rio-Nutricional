@@ -51,6 +51,7 @@ import Anamnesis from './components/Anamnesis';
 import { User, DietPlan } from './types';
 import { USERS } from './constants';
 import { saveDailyLog, subscribeToDailyLog } from './services/firestoreService';
+import { initialData } from './components/ProgressTracker';
 
 interface MealData {
   p: number;
@@ -78,7 +79,13 @@ const App = () => {
   console.log("Current User:", currentUser);
   const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas' | 'saude' | 'progresso'>('diario');
   const [showPhysicalAssessment, setShowPhysicalAssessment] = useState(false);
-  const [isDiaDeTreino, setIsDiaDeTreino] = useState(true);
+  const [isDiaDeTreino, setIsDiaDeTreino] = useState(() => {
+    const day = new Date().getDay();
+    // 0: Domingo, 1: Segunda, 2: Terça, 3: Quarta, 4: Quinta, 5: Sexta, 6: Sábado
+    // Treino: Seg(1), Ter(2), Qui(4), Sex(5), Sáb(6)
+    // Descanso: Qua(3), Dom(0)
+    return [1, 2, 4, 5, 6].includes(day);
+  });
   const [selectedMeal, setSelectedMeal] = useState<number | null>(null);
   const [currentDayName, setCurrentDayName] = useState('');
   const [activeMealId, setActiveMealId] = useState<number | null>(null);
@@ -1045,39 +1052,35 @@ const App = () => {
 
         {activeTab === 'diario' && (
           <>
-            {/* CARD DE INSTALAÇÃO DO APP */}
-            <div className="bg-blue-600 rounded-[2rem] p-6 text-white shadow-lg shadow-blue-200 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <Plus className="w-6 h-6" />
+            {/* CARD DE META DE PESO EM DESTAQUE */}
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2rem] p-8 text-white shadow-xl shadow-blue-200 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                    <Target className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-black uppercase tracking-wider font-montserrat">Meta de Peso</h3>
                 </div>
-                <div>
-                  <h3 className="text-sm font-black uppercase tracking-wider font-montserrat">Instalar Aplicativo</h3>
-                  <p className="text-[10px] font-medium opacity-80">Acesse o Diário Nutricional direto da sua tela inicial</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => alert('Para instalar: Clique no ícone de compartilhar do seu navegador e selecione "Adicionar à Tela de Início"')}
-                className="bg-white text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-transform"
-              >
-                Instalar
-              </button>
-            </div>
-
-            {/* CARD DE META DE PESO */}
-            <div className="bg-white rounded-[2rem] shadow-sm border border-stone-200 p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
-                  <Target className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Meta de Peso</p>
-                  <p className="text-lg font-black text-slate-900 font-montserrat">{metaPeso} kg</p>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest">Peso Atual</p>
+                  <p className="text-2xl font-black">{initialData[initialData.length - 1]?.weight || 0} kg</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tempo Estimado</p>
-                <p className="text-sm font-bold text-emerald-600">{tempoEstimado}</p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/10 rounded-2xl p-4">
+                  <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1">Meta</p>
+                  <p className="text-lg font-black">{metaPeso} kg</p>
+                </div>
+                <div className="bg-white/10 rounded-2xl p-4">
+                  <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1">Falta</p>
+                  <p className="text-lg font-black">{Math.abs((initialData[initialData.length - 1]?.weight || 0) - metaPeso)} kg</p>
+                </div>
+              </div>
+              
+              <div className="mt-6 pt-6 border-t border-white/20">
+                <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1">Tempo Estimado</p>
+                <p className="text-sm font-bold">{tempoEstimado}</p>
               </div>
             </div>
 
@@ -1292,11 +1295,11 @@ const App = () => {
                     <div className="p-5 flex items-center gap-4">
                       <button 
                         onClick={() => handleToggleMealFed(meal)}
-                        className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-90 ${
-                          isConfirmed ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-stone-50 text-stone-300 hover:bg-stone-100'
+                        className={`w-16 h-9 rounded-full flex items-center p-1 transition-all duration-300 ${
+                          isConfirmed ? 'bg-emerald-500 shadow-lg shadow-emerald-200' : 'bg-stone-200'
                         }`}
                       >
-                        {isConfirmed ? <CheckCircle2 className="w-7 h-7" /> : <Plus className="w-7 h-7" />}
+                        <div className={`w-7 h-7 rounded-full bg-white shadow-sm transform transition-transform duration-300 ${isConfirmed ? 'translate-x-7' : 'translate-x-0'}`} />
                       </button>
                       <div className="flex-1" onClick={() => setSelectedMeal(selectedMeal === meal.id ? null : meal.id)}>
                         <div className="flex justify-between items-start">

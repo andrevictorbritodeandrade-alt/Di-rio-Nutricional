@@ -14,7 +14,7 @@ import { ProgressEntry, Workout } from '../types';
 import { analyzeWorkoutScreenshot } from '../services/visionService';
 import { connectGoogleFit, fetchTodayWorkouts } from '../services/googleFitService';
 
-const initialData: ProgressEntry[] = [
+export const initialData: ProgressEntry[] = [
   { date: '17/03', weight: 99, muscleMass: 35, bodyFat: 28 },
   { date: '24/03', weight: 100.5, muscleMass: 35, bodyFat: 28.5 },
   { date: '31/03', weight: 101.2, muscleMass: 35, bodyFat: 29 },
