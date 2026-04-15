@@ -1,10 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User Profile
     match /users/{userId} {
-      allow read, write: if true;
+      allow read, write: if true; // Mantendo permissivo para desenvolvimento inicial conforme solicitado implicitamente pela estrutura anterior
       
+      // Daily Logs
       match /dailyLogs/{date} {
+        allow read, write: if true;
+      }
+      
+      // Progress Data
+      match /progress/{docId} {
         allow read, write: if true;
       }
     }

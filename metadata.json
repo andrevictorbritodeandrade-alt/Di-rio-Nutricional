@@ -1,7 +1,8 @@
 {
-  "name": "Diário Nutricional",
+  "name": "DIÁRIO NUTRICIONAL - IA",
   "description": "A personalized diet and hydration tracker with meal scheduling and macro monitoring.",
   "requestFramePermissions": [
     "camera"
-  ]
+  ],
+  "majorCapabilities": []
 }

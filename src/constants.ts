@@ -5,7 +5,7 @@ export const USERS: User[] = [
     id: 'andre',
     name: 'André Brito',
     password: '1008',
-    avatarDesc: 'Disney style 3D character, tall black man with a beard and glasses, wearing a brown fedora hat, a leopard print short-sleeved button-up shirt, short light beige shorts (above the knee), smiling, EXTREMELY THIN, SKINNY, SLENDER, LANKY, ECTOMORPH, SLIM WAIST, NO BELLY, FLAT STOMACH, standing on a sunny street with colorful buildings and mountains in the background, high quality, 3d render.',
+    avatarDesc: 'Disney style 3D character, tall black man with a beard and glasses, wearing a brown fedora hat, a leopard print short-sleeved button-up shirt (normal length, NOT a crop top, covering the belly), short light beige shorts (above the knee), smiling, athletic body, fit, muscular but lean, standing on a sunny street with colorful buildings and mountains in the background, high quality, 3d render.',
     avatarUrl: 'https://picsum.photos/seed/andre/200/200',
     isAutistic: true,
     hasADHD: true,

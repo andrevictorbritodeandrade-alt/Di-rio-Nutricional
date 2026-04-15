@@ -48,7 +48,7 @@ export const subscribeToDailyLog = (userId: string, date: string, callback: (dat
 
 export const saveProgressData = async (userId: string, data: any) => {
   try {
-    await setDoc(doc(db, 'users', userId, 'progress', 'main'), data);
+    await setDoc(doc(db, 'users', userId, 'progress', 'main'), data, { merge: true });
   } catch (error) {
     console.error('Error saving progress data:', error);
     throw error;

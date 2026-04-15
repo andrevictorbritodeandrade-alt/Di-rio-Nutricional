@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "avatarVersion": { "type": "string" },
+        "isAutistic": { "type": "boolean" },
+        "hasADHD": { "type": "boolean" },
+        "anamnesisCompleted": { "type": "boolean" }
+      },
+      "required": ["id", "name"]
+    },
+    "DailyLog": {
+      "title": "DailyLog",
+      "description": "Daily nutrition and health logs",
+      "type": "object",
+      "properties": {
+        "confirmedMeals": { "type": "object" },
+        "waterIntake": { "type": "number" },
+        "waterGoal": { "type": "number" },
+        "healthMeasurements": { "type": "object" }
+      }
+    },
+    "Progress": {
+      "title": "Progress",
+      "description": "Weight and workout progress",
+      "type": "object",
+      "properties": {
+        "data": { "type": "array" },
+        "workouts": { "type": "array" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User documents"
+    },
+    "/users/{userId}/dailyLogs/{date}": {
+      "schema": "DailyLog",
+      "description": "Daily nutrition logs"
+    },
+    "/users/{userId}/progress/main": {
+      "schema": "Progress",
+      "description": "User progress data"
+    }
+  }
+}

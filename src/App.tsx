@@ -51,7 +51,7 @@ import Login from './components/Login';
 import Anamnesis from './components/Anamnesis';
 import { User, DietPlan } from './types';
 import { USERS } from './constants';
-import { saveDailyLog, subscribeToDailyLog } from './services/firestoreService';
+import { saveDailyLog, subscribeToDailyLog, saveProgressData, subscribeToProgressData } from './services/firestoreService';
 import { initialData } from './components/ProgressTracker';
 
 interface MealData {
@@ -450,16 +450,25 @@ const App = () => {
   useEffect(() => {
     if (currentUser) {
       const today = new Date().toISOString().split('T')[0];
-      const unsubscribe = subscribeToDailyLog(currentUser.id, today, (data) => {
+      const unsubscribeDaily = subscribeToDailyLog(currentUser.id, today, (data) => {
         if (data) {
           if (data.confirmedMeals) setConfirmedMeals(data.confirmedMeals);
           if (data.waterIntake !== undefined) setWaterIntake(data.waterIntake);
           if (data.waterGoal !== undefined) setWaterGoal(data.waterGoal);
-          if (data.healthMeasurements) setHealthMeasurements(data.healthMeasurements);
         }
         setIsDataLoaded(true);
       });
-      return () => unsubscribe();
+
+      const unsubscribeProgress = subscribeToProgressData(currentUser.id, (data) => {
+        if (data && data.healthMeasurements) {
+          setHealthMeasurements(data.healthMeasurements);
+        }
+      });
+
+      return () => {
+        unsubscribeDaily();
+        unsubscribeProgress();
+      };
     }
   }, [currentUser]);
 
@@ -469,7 +478,8 @@ const App = () => {
         setIsSyncing(true);
         const today = new Date().toISOString().split('T')[0];
         try {
-          await saveDailyLog(currentUser.id, today, { confirmedMeals, waterIntake, waterGoal, healthMeasurements });
+          await saveDailyLog(currentUser.id, today, { confirmedMeals, waterIntake, waterGoal });
+          await saveProgressData(currentUser.id, { healthMeasurements });
         } catch (error) {
           console.error('Error syncing to cloud:', error);
         } finally {

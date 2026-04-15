@@ -52,7 +52,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           // 1. Tenta buscar do localStorage primeiro (cache local ultra rápido)
           let localCache = null;
           try {
-            localCache = localStorage.getItem(`avatar_v3_${user.id}`);
+            localCache = localStorage.getItem(`avatar_v4_${user.id}`);
           } catch (e) {
             console.warn("Erro ao ler localStorage:", e);
           }
@@ -65,11 +65,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           // 2. Tenta buscar do Firestore (cache compartilhado)
           if (!force) {
             const userDoc = await getDoc(doc(db, 'users', user.id));
-            if (userDoc.exists() && userDoc.data().avatarUrl && !userDoc.data().avatarUrl.includes('picsum') && userDoc.data().avatarVersion === 'v3') {
+            if (userDoc.exists() && userDoc.data().avatarUrl && !userDoc.data().avatarUrl.includes('picsum') && userDoc.data().avatarVersion === 'v4') {
               const remoteAvatar = userDoc.data().avatarUrl;
               newAvatars[user.id] = remoteAvatar;
               try {
-                localStorage.setItem(`avatar_v3_${user.id}`, remoteAvatar);
+                localStorage.setItem(`avatar_v4_${user.id}`, remoteAvatar);
               } catch (e) {
                 console.warn("Erro ao escrever no localStorage:", e);
               }
@@ -92,14 +92,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               const b64 = `data:image/png;base64,${part.inlineData.data}`;
               newAvatars[user.id] = b64;
               try {
-                localStorage.setItem(`avatar_v3_${user.id}`, b64);
+                localStorage.setItem(`avatar_v4_${user.id}`, b64);
               } catch (e) {
                 console.warn("Erro ao escrever no localStorage:", e);
               }
               
               // Salva no Firestore
               try {
-                await setDoc(doc(db, 'users', user.id), { avatarUrl: b64, avatarVersion: 'v3' }, { merge: true });
+                await setDoc(doc(db, 'users', user.id), { avatarUrl: b64, avatarVersion: 'v4' }, { merge: true });
               } catch (e) {
                 console.warn("Erro ao salvar avatar no Firestore:", e);
               }
