@@ -11,9 +11,14 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Test Connection
+    match /test/connection {
+      allow read: if true;
+    }
+
     // User Profile
     match /users/{userId} {
-      allow read, write: if true; // Mantendo permissivo para desenvolvimento inicial conforme solicitado implicitamente pela estrutura anterior
+      allow read, write: if true;
       
       // Daily Logs
       match /dailyLogs/{date} {
