@@ -64,8 +64,8 @@ const Anamnesis: React.FC<AnamnesisProps> = ({ user, onComplete }) => {
 
     try {
       const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("API Key não configurada.");
+      if (!apiKey || apiKey === 'undefined') {
+        throw new Error("API Key do Gemini não encontrada na Anamnese. Configure a variável GEMINI_API_KEY.");
       }
       const ai = new GoogleGenAI({ apiKey });
       const history = messages.map(m => ({

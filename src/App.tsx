@@ -544,8 +544,8 @@ const App = () => {
     setIsProcessing(true);
     try {
       const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("API Key não configurada. Verifique as variáveis de ambiente.");
+      if (!apiKey || apiKey === 'undefined') {
+        throw new Error("API Key do Gemini não encontrada. Configure a variável GEMINI_API_KEY nos segredos/ambiente do projeto.");
       }
 
       const ai = new GoogleGenAI({ apiKey });

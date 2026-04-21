@@ -36,8 +36,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error("ERRO: GEMINI_API_KEY não encontrada. Verifique as variáveis de ambiente.");
+    if (!apiKey || apiKey === 'undefined') {
+      console.error("ERRO: GEMINI_API_KEY não encontrada nos segredos/ambiente.");
       setLoadingAvatars(false);
       setIsRefreshing(false);
       return;

@@ -2,8 +2,8 @@ import { GoogleGenAI } from "@google/genai";
 
 export async function analyzeWorkoutScreenshot(imageFile: File) {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("API Key não configurada. Verifique as variáveis de ambiente.");
+  if (!apiKey || apiKey === 'undefined') {
+    throw new Error("API Key do Gemini não encontrada no visionService. Configure a variável GEMINI_API_KEY.");
   }
   
   const ai = new GoogleGenAI({ apiKey });
