@@ -46,6 +46,17 @@ export const subscribeToDailyLog = (userId: string, date: string, callback: (dat
   });
 };
 
+export const subscribeToUserData = (userId: string, callback: (data: any) => void) => {
+  const docRef = doc(db, 'users', userId);
+  return onSnapshot(docRef, (doc) => {
+    if (doc.exists()) {
+      callback(doc.data());
+    } else {
+      callback(null);
+    }
+  });
+};
+
 export const saveProgressData = async (userId: string, data: any) => {
   try {
     await setDoc(doc(db, 'users', userId, 'progress', 'main'), data, { merge: true });

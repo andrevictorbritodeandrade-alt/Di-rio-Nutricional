@@ -263,36 +263,18 @@ const NewAssessmentForm = ({ onSave, onCancel }: any) => {
 
 // --- COMPONENTE PRINCIPAL ---
 
-export default function PhysicalAssessment({ onClose }: { onClose: () => void }) {
+export default function PhysicalAssessment({ assessments, onSave, onClose }: { assessments: any[], onSave: (data: any) => void, onClose: () => void }) {
   const [view, setView] = useState('home'); 
-  const [assessments, setAssessments] = useState([
-    {
-      id: 1, date: '2025/01/08', time: '12:29:47',
-      weight: '92.45', weightStatus: 'Alto', bmi: '28.5', bodyFat: '27.3', fatWeight: '25.2',
-      skeletalMuscle: '38.5', skeletalMuscleWeight: '35.6', muscleRate: '69.5', muscleWeight: '64.2',
-      water: '52.1', waterWeight: '48.2', visceralFat: '15.5', boneMass: '2.97',
-      metabolism: '1928.7', protein: '17.4', obesityLevel: '32.1', metabolicAge: '44.0',
-      lbm: '67.21', realAge: '35', height: '180'
-    },
-    {
-      id: 2, date: '2026/04/13', time: '20:30:00',
-      weight: '103.0', weightStatus: 'Obeso', bmi: '31.8', bodyFat: '29.4', fatWeight: '30.2',
-      skeletalMuscle: '37.1', skeletalMuscleWeight: '38.2', muscleRate: '65.0', muscleWeight: '66.9',
-      water: '50.2', waterWeight: '51.7', visceralFat: '17.0', boneMass: '3.1',
-      metabolism: '2050.0', protein: '16.5', obesityLevel: '34.2', metabolicAge: '46.0',
-      lbm: '72.8', realAge: '35', height: '180'
-    }
-  ]);
   const [selectedIndex, setSelectedIndex] = useState(assessments.length - 1);
 
   const handleSave = (data: any) => {
     const newRecord = { ...data, id: Date.now() };
-    setAssessments([...assessments, newRecord]);
+    onSave(newRecord);
     setSelectedIndex(assessments.length);
     setView('home');
   };
 
-  const current = assessments[selectedIndex];
+  const current = assessments[selectedIndex] || assessments[assessments.length - 1];
 
   return (
     <div className="fixed inset-0 z-[100] bg-[#FDFEFE] font-sans selection:bg-blue-100 overflow-hidden flex flex-col">

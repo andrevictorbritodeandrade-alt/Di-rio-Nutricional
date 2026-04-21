@@ -51,7 +51,7 @@ import Login from './components/Login';
 import Anamnesis from './components/Anamnesis';
 import { User, DietPlan } from './types';
 import { USERS } from './constants';
-import { saveDailyLog, subscribeToDailyLog, saveProgressData, subscribeToProgressData } from './services/firestoreService';
+import { saveDailyLog, subscribeToDailyLog, saveProgressData, subscribeToProgressData, subscribeToUserData, saveUserData } from './services/firestoreService';
 import { initialData } from './components/ProgressTracker';
 
 interface MealData {
@@ -77,7 +77,18 @@ interface Recipe {
 const App = () => {
   console.log("App rendering...");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  console.log("Current User:", currentUser);
+  
+  // Restore user from localStorage on mount
+  useEffect(() => {
+    const savedUserId = localStorage.getItem('selectedUserId');
+    if (savedUserId) {
+      const user = USERS.find(u => u.id === savedUserId);
+      if (user) {
+        setCurrentUser(user);
+      }
+    }
+  }, []);
+
   const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas' | 'saude' | 'progresso'>('diario');
   const [showPhysicalAssessment, setShowPhysicalAssessment] = useState(false);
   const [isDiaDeTreino, setIsDiaDeTreino] = useState(() => {
@@ -114,6 +125,24 @@ const App = () => {
 
   // AFERIÇÕES DE SAÚDE
   const [healthMeasurements, setHealthMeasurements] = useState<any[]>([]);
+  const [bioimpedanceAssessments, setBioimpedanceAssessments] = useState<any[]>([
+    {
+      id: 1, date: '2025/01/08', time: '12:29:47',
+      weight: '92.45', weightStatus: 'Alto', bmi: '28.5', bodyFat: '27.3', fatWeight: '25.2',
+      skeletalMuscle: '38.5', skeletalMuscleWeight: '35.6', muscleRate: '69.5', muscleWeight: '64.2',
+      water: '52.1', waterWeight: '48.2', visceralFat: '15.5', boneMass: '2.97',
+      metabolism: '1928.7', protein: '17.4', obesityLevel: '32.1', metabolicAge: '44.0',
+      lbm: '67.21', realAge: '35', height: '180'
+    },
+    {
+      id: 2, date: '2026/04/13', time: '20:30:00',
+      weight: '103.0', weightStatus: 'Obeso', bmi: '31.8', bodyFat: '29.4', fatWeight: '30.2',
+      skeletalMuscle: '37.1', skeletalMuscleWeight: '38.2', muscleRate: '65.0', muscleWeight: '66.9',
+      water: '50.2', waterWeight: '51.7', visceralFat: '17.0', boneMass: '3.1',
+      metabolism: '2050.0', protein: '16.5', obesityLevel: '34.2', metabolicAge: '46.0',
+      lbm: '72.8', realAge: '35', height: '180'
+    }
+  ]);
   
   // Começa zerado conforme pedido do usuário
   const [confirmedMeals, setConfirmedMeals] = useState<Record<number, MealData>>({});
@@ -446,49 +475,74 @@ const App = () => {
   }, [isDiaDeTreino, selectedMeal, cardapioAtual]);
 
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [isProgressLoaded, setIsProgressLoaded] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
+      // Persist user selection
+      localStorage.setItem('selectedUserId', currentUser.id);
+
+      // 1. Subscribe to profile changes (syncs diet plan, anamnesis completion, etc)
+      const unsubscribeUser = subscribeToUserData(currentUser.id, (data) => {
+        if (data) {
+          setCurrentUser(prev => {
+            if (!prev) return prev;
+            // Only update if data is actually different to avoid cycles
+            const newData = { ...prev, ...data };
+            if (JSON.stringify(prev) !== JSON.stringify(newData)) {
+              return newData;
+            }
+            return prev;
+          });
+        }
+      });
+
       const today = new Date().toISOString().split('T')[0];
       const unsubscribeDaily = subscribeToDailyLog(currentUser.id, today, (data) => {
         if (data) {
           if (data.confirmedMeals) setConfirmedMeals(data.confirmedMeals);
           if (data.waterIntake !== undefined) setWaterIntake(data.waterIntake);
           if (data.waterGoal !== undefined) setWaterGoal(data.waterGoal);
+          if (data.isDiaDeTreino !== undefined) setIsDiaDeTreino(data.isDiaDeTreino);
         }
         setIsDataLoaded(true);
       });
 
       const unsubscribeProgress = subscribeToProgressData(currentUser.id, (data) => {
-        if (data && data.healthMeasurements) {
-          setHealthMeasurements(data.healthMeasurements);
+        if (data) {
+          if (data.healthMeasurements) setHealthMeasurements(data.healthMeasurements);
+          if (data.bioimpedanceAssessments) setBioimpedanceAssessments(data.bioimpedanceAssessments);
         }
+        setIsProgressLoaded(true);
       });
 
       return () => {
+        unsubscribeUser();
         unsubscribeDaily();
         unsubscribeProgress();
       };
     }
-  }, [currentUser]);
+  }, [currentUser?.id]);
 
   useEffect(() => {
-    if (currentUser && isDataLoaded) {
+    if (currentUser && isDataLoaded && isProgressLoaded) {
       const saveToCloud = async () => {
         setIsSyncing(true);
         const today = new Date().toISOString().split('T')[0];
         try {
-          await saveDailyLog(currentUser.id, today, { confirmedMeals, waterIntake, waterGoal });
-          await saveProgressData(currentUser.id, { healthMeasurements });
+          await saveDailyLog(currentUser.id, today, { confirmedMeals, waterIntake, waterGoal, isDiaDeTreino });
+          await saveProgressData(currentUser.id, { healthMeasurements, bioimpedanceAssessments });
         } catch (error) {
           console.error('Error syncing to cloud:', error);
         } finally {
           setIsSyncing(false);
         }
       };
-      saveToCloud();
+      
+      const timeout = setTimeout(saveToCloud, 500); // 500ms debounce
+      return () => clearTimeout(timeout);
     }
-  }, [confirmedMeals, waterIntake, waterGoal, healthMeasurements, currentUser, isDataLoaded]);
+  }, [confirmedMeals, waterIntake, waterGoal, healthMeasurements, isDiaDeTreino, currentUser?.id, isDataLoaded]);
 
   const confirmChoice = (mealId: number, choice: string, data: any) => {
     setConfirmedMeals(prev => ({ 
@@ -738,8 +792,10 @@ const App = () => {
     return (
       <Anamnesis 
         user={currentUser} 
-        onComplete={(plan) => {
-          setCurrentUser({ ...currentUser, anamnesisCompleted: true, dietPlan: plan });
+        onComplete={async (plan) => {
+          const updatedUser = { ...currentUser, anamnesisCompleted: true, dietPlan: plan };
+          setCurrentUser(updatedUser);
+          await saveUserData(updatedUser);
         }} 
       />
     );
@@ -784,7 +840,10 @@ const App = () => {
                 {notificationsEnabled ? <BellRing size={18} /> : <Bell size={18} />}
               </button>
               <button 
-                onClick={() => setCurrentUser(null)}
+                onClick={() => {
+                  localStorage.removeItem('selectedUserId');
+                  setCurrentUser(null);
+                }}
                 className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 active:scale-95 transition-transform"
               >
                 <LogOut size={18} />
@@ -1784,7 +1843,11 @@ const App = () => {
 
       {/* MODAL DE AVALIAÇÃO FÍSICA */}
       {showPhysicalAssessment && (
-        <PhysicalAssessment onClose={() => setShowPhysicalAssessment(false)} />
+        <PhysicalAssessment 
+          assessments={bioimpedanceAssessments}
+          onSave={(data) => setBioimpedanceAssessments(prev => [...prev, data])}
+          onClose={() => setShowPhysicalAssessment(false)} 
+        />
       )}
     </div>
   );
