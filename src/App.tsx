@@ -168,8 +168,21 @@ const App = () => {
     }
   ]);
   
-  // Começa zerado conforme pedido do usuário
-  const [confirmedMeals, setConfirmedMeals] = useState<Record<number, MealData>>({});
+  // Inicia com as refeições do dia 23/04 (Café da Manhã e Almoço) temporariamente inseridas conforme pedido
+  const [confirmedMeals, setConfirmedMeals] = useState<Record<number, MealData>>({
+    101: {
+      p: 4, c: 37, g: 0, kcal: 180,
+      option: 'IA',
+      realDescription: 'Registro IA: Café preto 180ml, pão de sal torrado com geléia de pimenta',
+      title: 'Café da Manhã'
+    },
+    102: {
+      p: 29, c: 34, g: 11, kcal: 360,
+      option: 'IA',
+      realDescription: 'Registro IA: 1 concha de feijão branco, 1 colher de arroz, 3 colheres de beterraba, 3 coxinhas da asa na Airfryer',
+      title: 'Almoço'
+    }
+  });
 
   const receitas: Recipe[] = [
     {
@@ -524,7 +537,9 @@ const App = () => {
       const today = new Date().toISOString().split('T')[0];
       const unsubscribeDaily = subscribeToDailyLog(currentUser.id, today, (data) => {
         if (data) {
-          if (data.confirmedMeals) setConfirmedMeals(data.confirmedMeals);
+          if (data.confirmedMeals && Object.keys(data.confirmedMeals).length > 0) {
+            setConfirmedMeals(data.confirmedMeals);
+          }
           if (data.waterIntake !== undefined) setWaterIntake(data.waterIntake);
           if (data.waterGoal !== undefined) setWaterGoal(data.waterGoal);
           if (data.isDiaDeTreino !== undefined) setIsDiaDeTreino(data.isDiaDeTreino);
@@ -623,7 +638,22 @@ const App = () => {
     try {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey || apiKey === 'undefined') {
-        throw new Error("API Key do Gemini não encontrada. Configure a variável GEMINI_API_KEY nos segredos/ambiente do projeto.");
+        const newId = Date.now();
+        setConfirmedMeals(prev => ({
+          ...prev,
+          [newId]: {
+            p: 15, c: 20, g: 10, kcal: 230, // Estimativa genérica offline
+            option: 'Offline',
+            realDescription: `[Offline] ${inputText || 'Refeição registrada'}`
+          }
+        }));
+        
+        alert("Modo Offline: A refeição foi registrada com sucesso, mas com calorias estimadas padrão. Para a IA funcionar, adicione a variável GEMINI_API_KEY lá nas configurações (Environment Variables) do seu projeto no Vercel!");
+        
+        setInputText('');
+        setSelectedImage(null);
+        setIsProcessing(false);
+        return;
       }
 
       const ai = new GoogleGenAI({ apiKey });
