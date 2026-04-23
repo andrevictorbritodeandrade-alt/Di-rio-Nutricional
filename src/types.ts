@@ -8,8 +8,9 @@ export interface Workout {
   id: string;
   date: string;
   activity: string;
-  duration: string;
+  duration: string; // or number if in seconds
   calories: number;
+  details?: any; // To store advanced structured JSON
 }
 
 export interface HealthMeasurement {

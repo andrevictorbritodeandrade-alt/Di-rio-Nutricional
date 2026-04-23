@@ -127,20 +127,44 @@ const App = () => {
   const [healthMeasurements, setHealthMeasurements] = useState<any[]>([]);
   const [bioimpedanceAssessments, setBioimpedanceAssessments] = useState<any[]>([
     {
-      id: 1, date: '2025/01/08', time: '12:29:47',
-      weight: '92.45', weightStatus: 'Alto', bmi: '28.5', bodyFat: '27.3', fatWeight: '25.2',
-      skeletalMuscle: '38.5', skeletalMuscleWeight: '35.6', muscleRate: '69.5', muscleWeight: '64.2',
-      water: '52.1', waterWeight: '48.2', visceralFat: '15.5', boneMass: '2.97',
-      metabolism: '1928.7', protein: '17.4', obesityLevel: '32.1', metabolicAge: '44.0',
-      lbm: '67.21', realAge: '35', height: '180'
+      id: 1, date: '2026/04/02', time: '08:00:00',
+      weight: '103.0', weightStatus: 'Obeso', bmi: '31.8', bodyFat: '29.5', fatWeight: '30.4',
+      skeletalMuscle: '37.0', skeletalMuscleWeight: '38.1', muscleRate: '65.0', muscleWeight: '66.9',
+      water: '50.1', waterWeight: '51.6', visceralFat: '17.0', boneMass: '3.1',
+      metabolism: '2040.0', protein: '16.5', obesityLevel: '34.2', metabolicAge: '46.0',
+      lbm: '72.6', realAge: '35', height: '180'
     },
     {
-      id: 2, date: '2026/04/13', time: '20:30:00',
-      weight: '103.0', weightStatus: 'Obeso', bmi: '31.8', bodyFat: '29.4', fatWeight: '30.2',
-      skeletalMuscle: '37.1', skeletalMuscleWeight: '38.2', muscleRate: '65.0', muscleWeight: '66.9',
-      water: '50.2', waterWeight: '51.7', visceralFat: '17.0', boneMass: '3.1',
-      metabolism: '2050.0', protein: '16.5', obesityLevel: '34.2', metabolicAge: '46.0',
-      lbm: '72.8', realAge: '35', height: '180'
+      id: 2, date: '2026/04/07', time: '08:00:00',
+      weight: '102.0', weightStatus: 'Obeso', bmi: '31.5', bodyFat: '29.0', fatWeight: '29.6',
+      skeletalMuscle: '37.1', skeletalMuscleWeight: '37.8', muscleRate: '65.5', muscleWeight: '66.8',
+      water: '50.5', waterWeight: '51.5', visceralFat: '16.8', boneMass: '3.1',
+      metabolism: '2030.0', protein: '16.6', obesityLevel: '33.8', metabolicAge: '45.0',
+      lbm: '72.4', realAge: '35', height: '180'
+    },
+    {
+      id: 3, date: '2026/04/18', time: '08:00:00',
+      weight: '101.0', weightStatus: 'Alto', bmi: '31.2', bodyFat: '28.5', fatWeight: '28.8',
+      skeletalMuscle: '37.3', skeletalMuscleWeight: '37.7', muscleRate: '66.0', muscleWeight: '66.7',
+      water: '50.8', waterWeight: '51.3', visceralFat: '16.5', boneMass: '3.1',
+      metabolism: '2020.0', protein: '16.7', obesityLevel: '33.0', metabolicAge: '44.0',
+      lbm: '72.2', realAge: '35', height: '180'
+    },
+    {
+      id: 4, date: '2026/04/21', time: '08:00:00',
+      weight: '100.8', weightStatus: 'Alto', bmi: '31.1', bodyFat: '28.2', fatWeight: '28.4',
+      skeletalMuscle: '37.4', skeletalMuscleWeight: '37.7', muscleRate: '66.2', muscleWeight: '66.7',
+      water: '51.0', waterWeight: '51.4', visceralFat: '16.4', boneMass: '3.1',
+      metabolism: '2015.0', protein: '16.8', obesityLevel: '32.8', metabolicAge: '43.0',
+      lbm: '72.4', realAge: '35', height: '180'
+    },
+    {
+      id: 5, date: '2026/04/23', time: '08:00:00',
+      weight: '100.5', weightStatus: 'Alto', bmi: '31.0', bodyFat: '28.0', fatWeight: '28.1',
+      skeletalMuscle: '37.6', skeletalMuscleWeight: '37.8', muscleRate: '66.5', muscleWeight: '66.8',
+      water: '51.2', waterWeight: '51.5', visceralFat: '16.2', boneMass: '3.1',
+      metabolism: '2010.0', protein: '17.0', obesityLevel: '32.5', metabolicAge: '42.0',
+      lbm: '72.4', realAge: '35', height: '180'
     }
   ]);
   
@@ -804,7 +828,7 @@ const App = () => {
   return (
     <div className="min-h-screen bg-stone-50 text-slate-800 pb-40 font-sans relative scrollbar-hide">
       {/* HEADER ESTILO MYFITNESSPAL */}
-      <header className="bg-white rounded-b-[2.5rem] shadow-sm border-b border-stone-200 p-6 pt-8 sticky top-0 z-50">
+      <header className="bg-white rounded-b-[2.5rem] shadow-sm border-b border-stone-200 p-6 pt-8">
         <div className="max-w-xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">

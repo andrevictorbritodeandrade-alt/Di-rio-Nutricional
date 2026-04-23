@@ -9,16 +9,45 @@ export async function analyzeWorkoutScreenshot(imageFile: File) {
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
-    Analise este print de tela do Samsung Health.
+    Analise este print de tela de um app de fitness (como Samsung Health).
     Extraia os dados de treino: atividade, duração e calorias.
-    Retorne um JSON no formato:
+    Se for uma imagem contendo métricas detalhadas (como ritmo médio, distância, zonas cardíacas), inclua o campo 'details'.
+
+    Retorne APENAS um objeto JSON no formato abaixo. NÃO inclua crases, comentários ou texto fora do JSON.
+    Exemplo de formato:
     {
-      "activity": string,
-      "duration": string,
-      "calories": number
+      "activity": "Corrida",
+      "duration": "46:20",
+      "calories": 362,
+      "details": {
+        "distanceKm": 4.50,
+        "averagePace": "10'17\\"/km",
+        "averageHeartRateBpm": 131,
+        "averageCadencePpm": 112,
+        "elevationGainMeters": 34,
+        "splits": [
+          { "distance": "1.00 km", "time": "11:42", "pace": "11'42\\"" }
+        ],
+        "heartRateZones": [
+          { "zone": 5, "name": "Máxima", "range": "161-178 bpm", "usage": "Mínimo" }
+        ],
+        "advancedMetrics": {
+          "asymmetry": "Tendência para o lado Direito (Azul)",
+          "groundContactTime": "Alto/Lento (Laranja)",
+          "flightTime": "Ótimo (Verde)",
+          "regularity": "Tendência para o lado Direito (Azul)",
+          "vertical": "Médio (Laranja)",
+          "stiffness": "Médio (Laranja)"
+        },
+        "performanceAndRecovery": {
+          "vo2Max": 36.1,
+          "vo2MaxClassification": "Ruim",
+          "estimatedSweatLossMl": 606,
+          "hydrationRecommendationMl": 909,
+          "device": "Galaxy Watch7"
+        }
+      }
     }
-    Se houver mais de um treino, retorne um array de objetos.
-    Se não conseguir ler, retorne null.
   `;
 
   // Converter o arquivo para base64
