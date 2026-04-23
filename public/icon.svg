@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2563eb" />
+  
+  <!-- Scale Base -->
+  <rect x="128" y="160" width="256" height="224" rx="40" fill="none" stroke="#ffffff" stroke-width="32" />
+  
+  <!-- Scale Dial -->
+  <path d="M176 160 v-24 a80 80 0 0 1 160 0 v24" fill="none" stroke="#ffffff" stroke-width="32" stroke-linecap="round" />
+  <line x1="256" y1="110" x2="256" y2="160" stroke="#ffffff" stroke-width="24" stroke-linecap="round"/>
+  
+  <line x1="200" y1="95" x2="200" y2="120" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+  <line x1="312" y1="95" x2="312" y2="120" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Inside Scale: Fork (Left) -->
+  <path d="M216 320 v-50" fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="round"/>
+  <path d="M192 230 v30 a24 24 0 0 0 48 0 v-30" fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/>
+  <path d="M216 230 v30" fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/>
+
+  <!-- Inside Scale: Knife (Right) -->
+  <path d="M296 320 v-50" fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="round"/>
+  <path d="M296 220 c0 30 -22 30 -22 50 h22 z" fill="#ffffff" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"/>
+</svg>
