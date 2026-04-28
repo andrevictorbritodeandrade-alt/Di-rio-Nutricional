@@ -558,7 +558,17 @@ const App = () => {
       const unsubscribeProgress = subscribeToProgressData(currentUser.id, (data) => {
         if (data) {
           if (data.healthMeasurements) setHealthMeasurements(data.healthMeasurements);
-          if (data.bioimpedanceAssessments) setBioimpedanceAssessments(data.bioimpedanceAssessments);
+          if (data.bioimpedanceAssessments && data.bioimpedanceAssessments.length > 0) {
+             setBioimpedanceAssessments(prev => {
+                const merged = [...prev];
+                data.bioimpedanceAssessments.forEach((cloudItem: any) => {
+                   if (!merged.find(item => item.id === cloudItem.id || item.date === cloudItem.date)) {
+                       merged.push(cloudItem);
+                   }
+                });
+                return merged.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+             });
+          }
         }
         setIsProgressLoaded(true);
       });
@@ -589,7 +599,7 @@ const App = () => {
       const timeout = setTimeout(saveToCloud, 500); // 500ms debounce
       return () => clearTimeout(timeout);
     }
-  }, [confirmedMeals, waterIntake, waterGoal, healthMeasurements, isDiaDeTreino, currentUser?.id, isDataLoaded]);
+  }, [confirmedMeals, waterIntake, waterGoal, healthMeasurements, bioimpedanceAssessments, isDiaDeTreino, currentUser?.id, isDataLoaded]);
 
   const confirmChoice = (mealId: number, choice: string, data: any) => {
     setConfirmedMeals(prev => ({ 
