@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Clock, 
   AlertTriangle, 
@@ -29,7 +29,8 @@ import {
   Bell,
   BellRing,
   User as UserIcon,
-  ChevronRight
+  ChevronRight,
+  ClipboardList
 } from 'lucide-react';
 
 import ProgressTracker from './components/ProgressTracker';
@@ -119,7 +120,6 @@ const App = () => {
   const [isEditingWaterGoal, setIsEditingWaterGoal] = useState(false);
   const [tempWaterGoal, setTempWaterGoal] = useState(3000);
   
-  // NOTIFICAÇÕES
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notifiedMeals, setNotifiedMeals] = useState<number[]>([]);
 
@@ -151,6 +151,18 @@ const App = () => {
       lbm: '72.2', realAge: '35', height: '180'
     },
     {
+      id: 7, date: '2026/04/20', time: '10:30:00',
+      weight: '103.0', weightStatus: 'Obeso', bmi: '29.0', bodyFat: '18.8', fatWeight: '19.3',
+      skeletalMuscle: '53.0', skeletalMuscleWeight: '34.6', muscleRate: '53.0', muscleWeight: '34.6',
+      water: '50.6', waterWeight: '47.5', visceralFat: '18.0', boneMass: '3.0',
+      metabolism: '2060.0', protein: '16.0', obesityLevel: '40.0', metabolicAge: '48.0',
+      lbm: '83.6', realAge: '36', height: '180',
+      skinfoldChest: '15', skinfoldAbdo: '23', skinfoldThigh: '23', skinfoldSum: '61', bodyDensity: '1.06',
+      chest: '115', waist: '101', abdomen: '108.5', hip: '118', thighRightPx: '72', thighLeftPx: '71.5',
+      thighRightDt: '---', thighLeftDt: '---', calfRight: '40', calfLeft: '41',
+      armRight: '33.5', armLeft: '33.5', forearmRight: '27', forearmLeft: '27.5'
+    },
+    {
       id: 4, date: '2026/04/21', time: '08:00:00',
       weight: '100.8', weightStatus: 'Alto', bmi: '31.1', bodyFat: '28.2', fatWeight: '28.4',
       skeletalMuscle: '37.4', skeletalMuscleWeight: '37.7', muscleRate: '66.2', muscleWeight: '66.7',
@@ -168,29 +180,51 @@ const App = () => {
     },
     {
       id: 6, date: '2026/04/27', time: '12:56:07',
-      weight: '100.1', weightStatus: 'Obeso', bmi: '30.9', bodyFat: '30.0', fatWeight: '30.0',
-      skeletalMuscle: '36.9', skeletalMuscleWeight: '36.9', muscleRate: '67.1', muscleWeight: '67.2',
-      water: '51.0', waterWeight: '51.0', visceralFat: '19.0', boneMass: '2.92',
-      metabolism: '2025.0', protein: '16.1', obesityLevel: '43.0', metabolicAge: '46.0',
-      lbm: '70.09', realAge: '36', height: '180'
+      weight: '100.1', weightStatus: 'Obeso', bmi: '29.0', bodyFat: '30.9', fatWeight: '29.0',
+      skeletalMuscle: '53.0', skeletalMuscleWeight: '34.6', muscleRate: '53.0', muscleWeight: '34.6',
+      water: '50.6', waterWeight: '47.5', visceralFat: '18.0', boneMass: '3.0',
+      metabolism: '1770.0', protein: '16.1', obesityLevel: '43.0', metabolicAge: '46.0',
+      lbm: '70.09', realAge: '36', height: '180',
+      skinfoldChest: '0,0', skinfoldAbdo: '0,0', skinfoldThigh: '0,0', skinfoldSum: '0,0', bodyDensity: '1,1',
+      chest: '---', waist: '---', abdomen: '---', hip: '---', thighRightPx: '---', thighLeftPx: '---',
+      thighRightDt: '---', thighLeftDt: '---', calfRight: '---', calfLeft: '---',
+      armRight: '---', armLeft: '---', forearmRight: '---', forearmLeft: '---'
     }
   ]);
   
+  // Cálculo da Próxima Avaliação Completa
+  const nextFullAssessment = useMemo(() => {
+    // Definimos uma avaliação completa como aquela que possui medidas de fitas métricas (ex: chest)
+    const completeAssessments = bioimpedanceAssessments
+      .filter(a => a.chest && a.chest !== '---' && a.date)
+      .sort((a, b) => new Date(b.date.replace(/\//g, '-')).getTime() - new Date(a.date.replace(/\//g, '-')).getTime());
+
+    if (completeAssessments.length === 0) return null;
+
+    const lastAssessment = completeAssessments[0];
+    const lastDate = new Date(lastAssessment.date.replace(/\//g, '-'));
+    const nextDate = new Date(lastDate);
+    nextDate.setDate(nextDate.getDate() + 30); // 30 dias depois
+
+    const today = new Date();
+    // Zerar horas para comparar apenas datas
+    today.setHours(0, 0, 0, 0);
+    const nextDateDate = new Date(nextDate);
+    nextDateDate.setHours(0, 0, 0, 0);
+
+    const diffTime = nextDateDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return {
+      date: nextDate.toISOString().split('T')[0],
+      daysRemaining: diffDays,
+      isOverdue: diffDays <= 0,
+      isNear: diffDays <= 5
+    };
+  }, [bioimpedanceAssessments]);
+  
   // Inicia com as refeições do dia 23/04 (Café da Manhã e Almoço) temporariamente inseridas conforme pedido
-  const [confirmedMeals, setConfirmedMeals] = useState<Record<number, MealData>>({
-    101: {
-      p: 4, c: 37, g: 0, kcal: 180,
-      option: 'IA',
-      realDescription: 'Registro IA: Café preto 180ml, pão de sal torrado com geléia de pimenta',
-      title: 'Café da Manhã'
-    },
-    102: {
-      p: 29, c: 34, g: 11, kcal: 360,
-      option: 'IA',
-      realDescription: 'Registro IA: 1 concha de feijão branco, 1 colher de arroz, 3 colheres de beterraba, 3 coxinhas da asa na Airfryer',
-      title: 'Almoço'
-    }
-  });
+  const [confirmedMeals, setConfirmedMeals] = useState<Record<number, MealData>>({});
 
   const receitas: Recipe[] = [
     {
@@ -545,8 +579,18 @@ const App = () => {
       const today = new Date().toISOString().split('T')[0];
       const unsubscribeDaily = subscribeToDailyLog(currentUser.id, today, (data) => {
         if (data) {
-          if (data.confirmedMeals && Object.keys(data.confirmedMeals).length > 0) {
-            setConfirmedMeals(data.confirmedMeals);
+          if (data.confirmedMeals) {
+            let loadedMeals = { ...data.confirmedMeals };
+            // Clear the fake placeholder meals
+            if (loadedMeals[101] && loadedMeals[101].realDescription?.includes('pimenta')) {
+              delete loadedMeals[101];
+            }
+            if (loadedMeals[102] && loadedMeals[102].realDescription?.includes('coxinha')) {
+              delete loadedMeals[102];
+            }
+            setConfirmedMeals(loadedMeals);
+          } else {
+            setConfirmedMeals({});
           }
           if (data.waterIntake !== undefined) setWaterIntake(data.waterIntake);
           if (data.waterGoal !== undefined) setWaterGoal(data.waterGoal);
@@ -844,7 +888,7 @@ const App = () => {
     } catch (error) {
       console.error("Erro ao renderizar Login:", error);
       return (
-        <div className="flex items-center justify-center min-h-screen bg-stone-50 p-4 text-center">
+        <div className="flex items-center justify-center min-h-screen bg-slate-100 p-4 text-center">
           <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md">
             <h2 className="text-xl font-black text-red-600 mb-4 uppercase">Erro de Carregamento</h2>
             <p className="text-stone-600 text-sm mb-6">Ocorreu um erro ao carregar a tela de login. Por favor, tente recarregar a página.</p>
@@ -874,7 +918,7 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 text-slate-800 pb-40 font-sans relative scrollbar-hide">
+    <div className="min-h-screen bg-slate-100 text-slate-800 pb-40 font-sans relative scrollbar-hide">
       {/* HEADER ESTILO MYFITNESSPAL */}
       <header className="bg-white rounded-b-[2.5rem] shadow-sm border-b border-stone-200 p-6 pt-8">
         <div className="max-w-xl mx-auto">
@@ -1195,11 +1239,68 @@ const App = () => {
                 );
               })}
             </div>
+
+            {/* SEÇÃO DE MEDICAÇÕES */}
+            <div className="bg-white rounded-[2rem] shadow-sm border border-stone-200 p-6 mt-6">
+              <h3 className="text-sm font-black uppercase tracking-wider font-montserrat mb-4">Medicações e Vitaminas</h3>
+              <div className="space-y-3">
+                {[
+                  { name: 'Bup (Bupropiona) 150mg XL', dosage: '150mg', frequency: '2x ao dia' },
+                  { name: 'Topiramato', dosage: '100mg', frequency: '2x ao dia' },
+                  { name: 'Sertralina', dosage: '50mg', frequency: '2x ao dia' },
+                  { name: 'Venvanse (Genérico)', dosage: '30mg', frequency: '1x ao dia' },
+                  { name: 'Vitaminas Bariátrica', dosage: '-', frequency: '2x ao dia' },
+                ].map((med, i) => (
+                  <div key={i} className="flex justify-between items-center p-3 bg-stone-50 rounded-xl border border-stone-100">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">{med.name}</p>
+                      <p className="text-[10px] text-slate-500">{med.dosage}</p>
+                    </div>
+                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{med.frequency}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         )}
 
         {activeTab === 'diario' && (
           <>
+            {/* ALERTA DE AVALIAÇÃO COMPLETA */}
+            {nextFullAssessment && (nextFullAssessment.isOverdue || nextFullAssessment.isNear) && (
+              <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`mb-6 p-6 rounded-[2.5rem] border-2 shadow-lg flex items-center gap-5 transition-all
+                  ${nextFullAssessment.isOverdue 
+                    ? 'bg-rose-50 border-rose-200 text-rose-900 shadow-rose-100' 
+                    : 'bg-amber-50 border-amber-200 text-amber-900 shadow-amber-100'}`}
+              >
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-inner
+                  ${nextFullAssessment.isOverdue ? 'bg-rose-500' : 'bg-amber-500'}`}>
+                  <AlertTriangle className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-black uppercase tracking-tight leading-none mb-1">
+                    {nextFullAssessment.isOverdue ? 'Avaliação Atrasada!' : 'Atenção à Próxima Avaliação'}
+                  </h4>
+                  <p className="text-[11px] font-medium leading-relaxed opacity-80">
+                    Sua avaliação completa (Bioimpedância + Medidas + Dobras) {nextFullAssessment.isOverdue ? 'está pendente' : 'deve ser feita'} dia <b>{new Date(nextFullAssessment.date + 'T12:00:00').toLocaleDateString('pt-BR')}</b>. Próximo alvo: 20 de Maio.
+                  </p>
+                  <button 
+                    onClick={() => setActiveTab('progresso')}
+                    className={`mt-3 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm
+                      ${nextFullAssessment.isOverdue 
+                        ? 'bg-rose-600 text-white hover:bg-rose-700' 
+                        : 'bg-amber-600 text-white hover:bg-amber-700'}`}
+                  >
+                    Abrir Avaliações
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
             {/* CARD DE META DE PESO EM DESTAQUE */}
             <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2rem] p-8 text-white shadow-xl shadow-blue-200 mb-6">
               <div className="flex items-center justify-between mb-6">
@@ -1229,28 +1330,6 @@ const App = () => {
               <div className="mt-6 pt-6 border-t border-white/20">
                 <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1">Tempo Estimado</p>
                 <p className="text-sm font-bold">{tempoEstimado}</p>
-              </div>
-            </div>
-
-            {/* SEÇÃO DE MEDICAÇÕES */}
-            <div className="bg-white rounded-[2rem] shadow-sm border border-stone-200 p-6 mt-6">
-              <h3 className="text-sm font-black uppercase tracking-wider font-montserrat mb-4">Medicações e Vitaminas</h3>
-              <div className="space-y-3">
-                {[
-                  { name: 'Bup (Bupropiona) 150mg XL', dosage: '150mg', frequency: '2x ao dia' },
-                  { name: 'Topiramato', dosage: '100mg', frequency: '2x ao dia' },
-                  { name: 'Sertralina', dosage: '50mg', frequency: '2x ao dia' },
-                  { name: 'Venvanse (Genérico)', dosage: '30mg', frequency: '1x ao dia' },
-                  { name: 'Vitaminas Bariátrica', dosage: '-', frequency: '2x ao dia' },
-                ].map((med, i) => (
-                  <div key={i} className="flex justify-between items-center p-3 bg-stone-50 rounded-xl border border-stone-100">
-                    <div>
-                      <p className="text-xs font-bold text-slate-900">{med.name}</p>
-                      <p className="text-[10px] text-slate-500">{med.dosage}</p>
-                    </div>
-                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{med.frequency}</span>
-                  </div>
-                ))}
               </div>
             </div>
 
@@ -1890,9 +1969,10 @@ const App = () => {
 
           <button 
             onClick={() => setShowPhysicalAssessment(true)}
-            className="w-14 h-14 bg-gradient-to-br from-blue-600 to-sky-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-blue-200 -mt-8 hover:scale-105 transition-transform border-4 border-white"
+            className={`flex flex-col items-center gap-1.5 transition-colors ${showPhysicalAssessment ? 'text-blue-600' : 'text-stone-400'}`}
           >
-            <UserIcon className="w-6 h-6" />
+            <ClipboardList className="w-6 h-6" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Avaliação</span>
           </button>
 
           <button 
