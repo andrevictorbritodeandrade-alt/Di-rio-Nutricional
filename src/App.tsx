@@ -165,6 +165,14 @@ const App = () => {
       water: '51.2', waterWeight: '51.5', visceralFat: '16.2', boneMass: '3.1',
       metabolism: '2010.0', protein: '17.0', obesityLevel: '32.5', metabolicAge: '42.0',
       lbm: '72.4', realAge: '35', height: '180'
+    },
+    {
+      id: 6, date: '2026/04/27', time: '12:56:07',
+      weight: '100.1', weightStatus: 'Obeso', bmi: '30.9', bodyFat: '30.0', fatWeight: '30.0',
+      skeletalMuscle: '36.9', skeletalMuscleWeight: '36.9', muscleRate: '67.1', muscleWeight: '67.2',
+      water: '51.0', waterWeight: '51.0', visceralFat: '19.0', boneMass: '2.92',
+      metabolism: '2025.0', protein: '16.1', obesityLevel: '43.0', metabolicAge: '46.0',
+      lbm: '70.09', realAge: '36', height: '180'
     }
   ]);
   
@@ -1204,7 +1212,7 @@ const App = () => {
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4">
                   <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1">Falta</p>
-                  <p className="text-lg font-black">{Math.abs((initialData[initialData.length - 1]?.weight || 0) - metaPeso)} kg</p>
+                  <p className="text-lg font-black">{Math.abs((initialData[initialData.length - 1]?.weight || 0) - metaPeso).toFixed(1)} kg</p>
                 </div>
               </div>
               

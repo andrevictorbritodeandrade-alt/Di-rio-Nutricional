@@ -206,7 +206,104 @@ const AnalysisView = ({ assessment }: any) => (
   </div>
 );
 
-// 4. NOVA AVALIAÇÃO (Formulário Completo)
+// 4. COMPARATIVO
+const ComparisonView = ({ current, previous }: { current: any, previous: any }) => {
+  if (!previous) return <div className="p-10 text-center font-black text-slate-300 uppercase tracking-widest">Apenas um registro encontrado</div>;
+
+  const compare = (key: string) => {
+    const currRaw = current[key];
+    const prevRaw = previous[key];
+    
+    if (currRaw === undefined || prevRaw === undefined) return null;
+
+    const curr = parseFloat(currRaw);
+    const prev = parseFloat(prevRaw);
+    
+    if (isNaN(curr) || isNaN(prev)) return null;
+
+    const diff = curr - prev;
+    const isIncrease = diff > 0;
+    return {
+      diff: Math.abs(diff).toFixed(2),
+      isIncrease,
+      percent: ((diff / prev) * 100).toFixed(1)
+    };
+  };
+
+  const metrics = [
+    { label: "Peso", key: "weight", unit: "Kg" },
+    { label: "Gordura Corporal", key: "bodyFat", unit: "%" },
+    { label: "Massa Muscular", key: "muscleWeight", unit: "Kg" },
+    { label: "Água", key: "water", unit: "%" },
+    { label: "Gordura Visceral", key: "visceralFat", unit: "" },
+    { label: "Metabolismo", key: "metabolism", unit: "kcal" },
+    { label: "Cintura", key: "waist", unit: "cm" },
+    { label: "Quadril", key: "hip", unit: "cm" },
+    { label: "Tórax", key: "chest", unit: "cm" },
+  ];
+
+  return (
+    <div className="space-y-4 pb-28 animate-in slide-in-from-right duration-500">
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-50">
+        <h3 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-tight flex items-center gap-2">
+          <TrendingUp size={18} className="text-blue-500" strokeWidth={3}/>
+          Comparativo: {previous.date} ➔ {current.date}
+        </h3>
+        
+        <div className="space-y-4">
+          {metrics.map((m, i) => {
+            const stats = compare(m.key);
+            const val = current[m.key] || "---";
+            
+            if (stats === null) {
+              return (
+                <div key={i} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-100 italic">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{m.label}</p>
+                    <p className="text-sm font-black text-slate-300">Sem dados</p>
+                  </div>
+                  <div className="text-right text-[10px] font-black text-slate-200">---</div>
+                </div>
+              );
+            }
+
+            const isGood = (m.key === 'muscleWeight' || m.key === 'water' || m.key === 'metabolism') 
+              ? stats.isIncrease 
+              : !stats.isIncrease;
+
+            return (
+              <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-3xl border-2 border-white shadow-sm">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{m.label}</p>
+                  <p className="text-sm font-black text-slate-700">{val} <span className="text-[10px] opacity-40">{m.unit}</span></p>
+                </div>
+                <div className="text-right">
+                  <div className={`flex items-center justify-end gap-1 font-black text-sm ${isGood ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {stats.isIncrease ? '+' : '-'}{stats.diff} {m.unit}
+                    {stats.isIncrease ? <TrendingUp size={14} strokeWidth={3}/> : <TrendingUp size={14} className="rotate-180" strokeWidth={3}/>}
+                  </div>
+                  <p className={`text-[9px] font-bold ${isGood ? 'text-emerald-600/60' : 'text-red-600/60'}`}>
+                    {stats.percent}% vs anterior
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="p-6 bg-blue-600 rounded-[2.5rem] text-white shadow-xl shadow-blue-200">
+        <h3 className="text-sm font-black mb-3 uppercase tracking-wider">Veredito do Mestre</h3>
+        <p className="text-xs font-medium leading-relaxed opacity-90">
+          André, comparando com {previous.date}, você teve uma variação de <BoldText>{(parseFloat(current.weight) - parseFloat(previous.weight)).toFixed(1)}kg</BoldText> no peso total. 
+          {parseFloat(current.muscleWeight) > parseFloat(previous.muscleWeight) ? " A massa muscular subiu, o que é excelente para manter a taxa metabólica ativa." : " Atenção à massa muscular, busque manter os estímulos de força."}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// 5. NOVA AVALIAÇÃO (Formulário Completo)
 const NewAssessmentForm = ({ onSave, onCancel }: any) => {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -264,14 +361,14 @@ const NewAssessmentForm = ({ onSave, onCancel }: any) => {
 // --- COMPONENTE PRINCIPAL ---
 
 export default function PhysicalAssessment({ assessments, onSave, onClose }: { assessments: any[], onSave: (data: any) => void, onClose: () => void }) {
-  const [view, setView] = useState('home'); 
+  const [view, setView] = useState('history'); 
   const [selectedIndex, setSelectedIndex] = useState(assessments.length - 1);
 
   const handleSave = (data: any) => {
     const newRecord = { ...data, id: Date.now() };
     onSave(newRecord);
     setSelectedIndex(assessments.length);
-    setView('home');
+    setView('metrics');
   };
 
   const current = assessments[selectedIndex] || assessments[assessments.length - 1];
@@ -296,21 +393,22 @@ export default function PhysicalAssessment({ assessments, onSave, onClose }: { a
       </header>
 
       {/* Tabs Superiores (Apenas em Relatórios) */}
-      {(view === 'metrics' || view === 'analysis') && (
+      {(view === 'metrics' || view === 'analysis' || view === 'comparison') && (
         <div className="px-6 mb-6">
           <div className="bg-slate-50 p-1.5 rounded-[1.8rem] flex shadow-inner border border-slate-100">
             <button onClick={() => setView('metrics')} className={`flex-1 py-3 text-[10px] font-black rounded-[1.4rem] transition-all uppercase tracking-widest ${view === 'metrics' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}>Métricas</button>
             <button onClick={() => setView('analysis')} className={`flex-1 py-3 text-[10px] font-black rounded-[1.4rem] transition-all uppercase tracking-widest ${view === 'analysis' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}>Análise</button>
+            <button onClick={() => setView('comparison')} className={`flex-1 py-3 text-[10px] font-black rounded-[1.4rem] transition-all uppercase tracking-widest ${view === 'comparison' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}>Comparativo</button>
           </div>
         </div>
       )}
 
       {/* Área de Conteúdo */}
       <main className="px-6 flex-1 overflow-y-auto no-scrollbar pb-32">
-        {view === 'home' && <HomeView assessment={assessments[assessments.length-1]} onNavigate={setView} />}
-        {view === 'new' && <NewAssessmentForm onSave={handleSave} onCancel={() => setView('home')} />}
+        {view === 'new' && <NewAssessmentForm onSave={handleSave} onCancel={() => setView('history')} />}
         {view === 'metrics' && <MetricsView assessment={current} />}
         {view === 'analysis' && <AnalysisView assessment={current} />}
+        {view === 'comparison' && <ComparisonView current={current} previous={selectedIndex > 0 ? assessments[selectedIndex - 1] : null} />}
         {view === 'history' && (
           <div className="space-y-3 pb-32 animate-in fade-in duration-300">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest ml-2 mb-6">Registros Anteriores</h3>
@@ -341,17 +439,17 @@ export default function PhysicalAssessment({ assessments, onSave, onClose }: { a
 
       {/* Dock Inferior */}
       <nav className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-100 flex justify-around items-center py-4 px-8 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] rounded-t-[3rem] z-20">
-        <button onClick={() => setView('home')} className={`flex flex-col items-center gap-1.5 ${view === 'home' ? 'text-blue-600' : 'text-slate-300'}`}>
-          <Home size={24} strokeWidth={view === 'home' ? 3 : 2} />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Início</span>
+        <button onClick={() => setView('history')} className={`flex flex-col items-center gap-1.5 ${view === 'history' ? 'text-blue-600' : 'text-slate-300'}`}>
+          <HistoryIcon size={24} strokeWidth={view === 'history' ? 3 : 2} />
+          <span className="text-[10px] font-black uppercase tracking-tighter">Histórico</span>
         </button>
         <div className="relative -top-10 scale-125">
           <button onClick={() => setView('new')} className="bg-blue-600 text-white p-4 rounded-full shadow-2xl shadow-blue-400 border-4 border-white active:scale-90 transition-transform">
             <Plus size={28} strokeWidth={4} />
           </button>
         </div>
-        <button onClick={() => { setSelectedIndex(assessments.length-1); setView('metrics'); }} className={`flex flex-col items-center gap-1.5 ${view === 'metrics' || view === 'analysis' || view === 'history' ? 'text-blue-600' : 'text-slate-300'}`}>
-          <BarChart2 size={24} strokeWidth={view !== 'home' ? 3 : 2} />
+        <button onClick={() => { setView('metrics'); }} className={`flex flex-col items-center gap-1.5 ${view === 'metrics' || view === 'analysis' || view === 'comparison' ? 'text-blue-600' : 'text-slate-300'}`}>
+          <BarChart2 size={24} strokeWidth={view === 'metrics' || view === 'analysis' || view === 'comparison' ? 3 : 2} />
           <span className="text-[10px] font-black uppercase tracking-tighter">Relatórios</span>
         </button>
       </nav>

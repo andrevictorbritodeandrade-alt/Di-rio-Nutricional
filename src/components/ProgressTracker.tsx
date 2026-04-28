@@ -21,6 +21,7 @@ export const initialData: ProgressEntry[] = [
   { date: '18/04', weight: 101, muscleMass: 35.5, bodyFat: 28.5 },
   { date: '21/04', weight: 100.8, muscleMass: 35.5, bodyFat: 28.2 },
   { date: '23/04', weight: 100.5, muscleMass: 36, bodyFat: 28 },
+  { date: '27/04', weight: 100.1, muscleMass: 36.9, bodyFat: 30 },
 ];
 
 export const initialWorkouts: Workout[] = [
