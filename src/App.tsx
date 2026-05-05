@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
+  Syringe,
+  Pill,
   Clock, 
   AlertTriangle, 
   TrendingDown, 
@@ -35,6 +37,7 @@ import {
 
 import ProgressTracker from './components/ProgressTracker';
 import PhysicalAssessment from './components/PhysicalAssessment';
+import { PoviztraControl } from './components/PoviztraControl';
 import { motion } from 'motion/react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { 
@@ -90,7 +93,7 @@ const App = () => {
     }
   }, []);
 
-  const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas' | 'saude' | 'progresso'>('diario');
+  const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas' | 'saude' | 'progresso' | 'poviztra'>('diario');
   const [showPhysicalAssessment, setShowPhysicalAssessment] = useState(false);
   const [isDiaDeTreino, setIsDiaDeTreino] = useState(() => {
     const day = new Date().getDay();
@@ -1049,6 +1052,7 @@ const App = () => {
 
       <div className="max-w-xl mx-auto space-y-4 pt-4 px-3">
         {activeTab === 'progresso' && <ProgressTracker currentUser={currentUser} />}
+        {activeTab === 'poviztra' && <PoviztraControl />}
         {activeTab === 'saude' && (
           <div className="space-y-6 pb-24">
             <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-200">
@@ -1989,6 +1993,13 @@ const App = () => {
           >
             <TrendingDown className="w-6 h-6" />
             <span className="text-[10px] font-black uppercase tracking-widest">Progresso</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('poviztra')}
+            className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'poviztra' ? 'text-blue-600' : 'text-stone-400'}`}
+          >
+            <Syringe className="w-6 h-6" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Poviztra</span>
           </button>
         </div>
       </nav>
