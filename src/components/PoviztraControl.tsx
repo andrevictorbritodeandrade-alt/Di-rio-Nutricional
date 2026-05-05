@@ -6,6 +6,8 @@ export const PoviztraControl = () => {
   const [globalHistory, setGlobalHistory] = useState<{ id: number; name: string; timestamp: string }[]>([]);
   const [expandedSection, setExpandedSection] = useState('summary');
 
+  const [showPrescription, setShowPrescription] = useState(false);
+
   // Poviztra: 300 clicks totais
   const [ozempic, setOzempic] = useState({
     name: 'Poviztra',
@@ -19,7 +21,8 @@ export const PoviztraControl = () => {
   const [vitamins, setVitamins] = useState<Record<string, any>>({
     b12: { name: 'Vitamina B12', lastDose: null, nextDose: null, cyclePhase: 'active' },
     vitD: { name: 'Vitamina D', lastDose: null, nextDose: null, cyclePhase: 'active' },
-    iron: { name: 'Ferro', lastDose: null, nextDose: null }
+    iron: { name: 'Ferro', lastDose: null, nextDose: null },
+    vonau: { name: 'Vonau Flash (SOS)', lastDose: null, nextDose: null, description: '8mg - Para náuseas/vômitos' }
   });
 
   // EXAME 06/01/2026
@@ -141,6 +144,78 @@ export const PoviztraControl = () => {
 
   return (
     <div className="space-y-6 pb-32 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* PRESCRIÇÃO MÉDICA OFICIAL */}
+      <section className="bg-slate-900 rounded-[2.5rem] p-6 shadow-xl border border-white/10 overflow-hidden relative">
+        <div className="flex justify-between items-start mb-4 relative z-10">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em]">Prescrição Ativa</span>
+            </div>
+            <h2 className="text-xl font-black text-white italic uppercase tracking-tighter">Nutrobarra Especial</h2>
+          </div>
+          <button 
+            onClick={() => setShowPrescription(!showPrescription)}
+            className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-white border border-white/10 hover:bg-white/20 transition-all"
+          >
+            {showPrescription ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3 mb-4 bg-white/5 p-3 rounded-2xl border border-white/5 relative z-10">
+          <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white font-black text-xs">MB</div>
+          <div>
+            <p className="text-xs font-black text-white italic">Dr. Murilo Oliveira Bizerra</p>
+            <p className="text-[9px] font-bold text-white/40 uppercase">CRM-RJ: 5201287958 • 24/04/2026</p>
+          </div>
+        </div>
+
+        {showPrescription && (
+          <div className="space-y-4 animate-in slide-in-from-top-4 duration-300 relative z-10 border-t border-white/10 pt-4">
+            <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+              <p className="text-[10px] font-black text-blue-400 uppercase mb-3 tracking-widest">Protocolo de Aplicação</p>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-white/60 font-bold">Semana 1 e 2</span>
+                  <span className="text-white font-black">4 clicks / dia</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-white/60 font-bold">Semana 3 em diante</span>
+                  <span className="text-white font-black">6 clicks / dia</span>
+                </div>
+                <p className="text-[9px] text-white/40 mt-2 italic leading-relaxed">
+                  * Girar levemente o tambor até ouvir o click. Aplicar via subcutânea diariamente conforme orientado.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+              <p className="text-[10px] font-black text-emerald-400 uppercase mb-3 tracking-widest">Orientações Obrigatórias</p>
+              <ul className="space-y-2">
+                {[
+                  "Dieta hipocalórica (elaborada por nutricionista)",
+                  "Exercício físico regular (musculação)",
+                  "Hidratação adequada",
+                  "Evitar alimentos gordurosos e álcool"
+                ].map((text, i) => (
+                  <li key={i} className="flex items-center gap-2 text-[11px] font-bold text-white/80">
+                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                    {text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20">
+              <p className="text-[10px] font-black text-amber-500 uppercase mb-1 tracking-widest">Suporte a Náuseas</p>
+              <p className="text-[11px] font-black text-white/90">Vonau Flash 8mg</p>
+              <p className="text-[10px] text-white/40 mt-1">Tomar 1 cp até de 8/8 horas SOS caso náusea/vômitos.</p>
+            </div>
+          </div>
+        )}
+        <List className="absolute -right-6 -bottom-6 h-32 w-32 text-white/5" />
+      </section>
       
       {/* CANETA POVIZTRA */}
       <section className="bg-white rounded-[2.5rem] shadow-sm border border-stone-200 overflow-hidden">
