@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Pill, Droplet, RefreshCcw, CheckCircle2, Timer, Beaker, AlertCircle, List, ChevronDown, ChevronUp, ShoppingCart, CalendarDays } from 'lucide-react';
+import { Pill, Droplet, RefreshCcw, CheckCircle2, Timer, Beaker, AlertCircle, List, ChevronDown, ChevronUp, ShoppingCart, CalendarDays, TrendingUp } from 'lucide-react';
 
 export const PoviztraControl = () => {
   // --- ESTADOS ---
-  const [globalHistory, setGlobalHistory] = useState<{ id: number; name: string; timestamp: string }[]>([]);
+  const [globalHistory, setGlobalHistory] = useState<{ id: number; name: string; timestamp: string }[]>([
+    { id: 1, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '06/05/2026 02:53:32' }
+  ]);
   const [expandedSection, setExpandedSection] = useState('summary');
 
   const [showPrescription, setShowPrescription] = useState(false);
@@ -12,9 +14,10 @@ export const PoviztraControl = () => {
   const [ozempic, setOzempic] = useState({
     name: 'Poviztra',
     totalUnits: 300,
-    remainingUnits: 300,
-    purchaseDate: new Date().toISOString().split('T')[0],
-    startDate: new Date().toISOString().split('T')[0],
+    remainingUnits: 296, // Primeira aplicação realizada (300 - 4)
+    startWeight: 101.7, // Peso inicial informado
+    purchaseDate: '2026-05-06',
+    startDate: '2026-05-06',
   });
 
   // Vitaminas
@@ -236,14 +239,18 @@ export const PoviztraControl = () => {
         </div>
         
         <div className="p-6">
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="space-y-1">
               <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-1"><ShoppingCart className="w-3 h-3"/> Compra</label>
-              <input type="date" value={ozempic.purchaseDate} onChange={(e) => setOzempic(p => ({...p, purchaseDate: e.target.value}))} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-2 text-xs font-bold" />
+              <input type="date" value={ozempic.purchaseDate} onChange={(e) => setOzempic(p => ({...p, purchaseDate: e.target.value}))} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-2 text-[10px] font-bold" />
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-1"><CalendarDays className="w-3 h-3"/> Início</label>
-              <input type="date" value={ozempic.startDate} onChange={(e) => setOzempic(p => ({...p, startDate: e.target.value}))} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-2 text-xs font-bold" />
+              <input type="date" value={ozempic.startDate} onChange={(e) => setOzempic(p => ({...p, startDate: e.target.value}))} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-2 text-[10px] font-bold" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-1"><TrendingUp className="w-3 h-3"/> Peso Inic.</label>
+              <input type="number" step="0.1" value={ozempic.startWeight} onChange={(e) => setOzempic(p => ({...p, startWeight: parseFloat(e.target.value) || 0}))} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl p-2 text-[10px] font-bold" />
             </div>
           </div>
 
