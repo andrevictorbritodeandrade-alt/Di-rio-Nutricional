@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Pill, Droplet, RefreshCcw, CheckCircle2, Timer, Beaker, AlertCircle, List, ChevronDown, ChevronUp, ShoppingCart, CalendarDays, TrendingUp } from 'lucide-react';
+import { Pill, Droplet, RefreshCcw, CheckCircle2, Timer, Beaker, AlertCircle, List, ChevronDown, ChevronUp, ShoppingCart, CalendarDays, TrendingUp, Utensils } from 'lucide-react';
 
 export const PoviztraControl = () => {
   // --- ESTADOS ---
@@ -145,10 +145,43 @@ export const PoviztraControl = () => {
     return 'bg-rose-500';
   };
 
+  // Alimentação
+  const [meals, setMeals] = useState([
+    { id: 1, time: '07:00', name: 'Café da manhã: ovos mexidos + café', done: true },
+    { id: 2, time: '09:00', name: 'Bolo de banana e aveia', done: false },
+    { id: 3, time: '11:00', name: 'Almoço: arroz, feijão, purê de batata e coxinha assada', done: false },
+    { id: 4, time: '13:00', name: 'Batata doce', done: false },
+    { id: 5, time: '15:00', name: 'Pão com ovo + suco', done: false },
+    { id: 6, time: '17:00', name: 'Uvas', done: false },
+  ]);
+
+  const toggleMeal = (id: number) => {
+    setMeals(prev => prev.map(m => m.id === id ? { ...m, done: !m.done } : m));
+  };
+
   return (
     <div className="space-y-6 pb-32 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
-      {/* PRESCRIÇÃO MÉDICA OFICIAL */}
+      {/* ALIMENTAÇÃO */}
+      <section className="bg-white rounded-[2.5rem] shadow-sm border border-stone-200 overflow-hidden">
+        <div className="bg-emerald-600 p-6 text-white flex justify-between items-center">
+            <h2 className="text-xl font-black uppercase tracking-tight italic">Alimentação - Hoje</h2>
+            <Utensils className="h-6 w-6" />
+        </div>
+        <div className="p-6 space-y-3">
+          {meals.map((meal) => (
+            <div key={meal.id} className={`flex items-center gap-4 p-4 rounded-2xl border-2 ${meal.done ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-50'}`}>
+              <button onClick={() => toggleMeal(meal.id)} className={`w-8 h-8 rounded-full flex items-center justify-center ${meal.done ? 'bg-emerald-500' : 'bg-slate-200'}`}>
+                {meal.done && <CheckCircle2 className="w-5 h-5 text-white" />}
+              </button>
+              <div className="flex-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{meal.time}</p>
+                <p className={`text-sm font-black ${meal.done ? 'text-emerald-800 line-through' : 'text-slate-800'}`}>{meal.name}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
       <section className="bg-slate-900 rounded-[2.5rem] p-6 shadow-xl border border-white/10 overflow-hidden relative">
         <div className="flex justify-between items-start mb-4 relative z-10">
           <div>
