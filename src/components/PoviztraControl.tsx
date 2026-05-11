@@ -4,8 +4,12 @@ import { Pill, Droplet, RefreshCcw, CheckCircle2, Timer, Beaker, AlertCircle, Li
 export const PoviztraControl = () => {
   // --- ESTADOS ---
   const [globalHistory, setGlobalHistory] = useState<{ id: number; name: string; timestamp: string }[]>([
-    { id: 2, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '07/05/2026 14:50:28' },
-    { id: 1, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '06/05/2026 02:53:32' }
+    { id: 6, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '11/05/2026 08:00:00' },
+    { id: 5, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '09/05/2026 08:00:00' },
+    { id: 4, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '08/05/2026 08:00:00' },
+    { id: 3, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '07/05/2026 08:00:00' },
+    { id: 2, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '06/05/2026 08:00:00' },
+    { id: 1, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '05/05/2026 08:00:00' }
   ]);
   const [expandedSection, setExpandedSection] = useState('summary');
 
@@ -15,7 +19,7 @@ export const PoviztraControl = () => {
   const [ozempic, setOzempic] = useState({
     name: 'Poviztra',
     totalUnits: 300,
-    remainingUnits: 292, // Total of 8 clicks used (06/05 and 07/05)
+    remainingUnits: 276, // Total of 24 clicks used (6 doses)
     startWeight: 101.7, // Peso inicial informado
     purchaseDate: '2026-05-06',
     startDate: '2026-05-06',

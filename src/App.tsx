@@ -1316,7 +1316,7 @@ const App = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest">Peso Atual</p>
-                  <p className="text-2xl font-black">{initialData[initialData.length - 1]?.weight || 0} kg</p>
+                  <p className="text-2xl font-black">{bioimpedanceAssessments[bioimpedanceAssessments.length - 1]?.weight || 0} kg</p>
                 </div>
               </div>
               
@@ -1327,7 +1327,7 @@ const App = () => {
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4">
                   <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1">Falta</p>
-                  <p className="text-lg font-black">{Math.abs((initialData[initialData.length - 1]?.weight || 0) - metaPeso).toFixed(1)} kg</p>
+                  <p className="text-lg font-black">{Math.abs((parseFloat(bioimpedanceAssessments[bioimpedanceAssessments.length - 1]?.weight) || 0) - metaPeso).toFixed(1)} kg</p>
                 </div>
               </div>
               
