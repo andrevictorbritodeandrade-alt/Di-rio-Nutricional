@@ -35,7 +35,8 @@ import {
   ClipboardList
 } from 'lucide-react';
 
-import ProgressTracker from './components/ProgressTracker';
+import { ExerciseTracker } from './components/ExerciseTracker';
+import { WeightMetrics } from './components/WeightMetrics';
 import PhysicalAssessment from './components/PhysicalAssessment';
 import { PoviztraControl } from './components/PoviztraControl';
 import { motion } from 'motion/react';
@@ -56,7 +57,6 @@ import Anamnesis from './components/Anamnesis';
 import { User, DietPlan } from './types';
 import { USERS } from './constants';
 import { saveDailyLog, subscribeToDailyLog, saveProgressData, subscribeToProgressData, subscribeToUserData, saveUserData } from './services/firestoreService';
-import { initialData } from './components/ProgressTracker';
 
 interface MealData {
   p: number;
@@ -93,7 +93,7 @@ const App = () => {
     }
   }, []);
 
-  const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas' | 'saude' | 'progresso' | 'poviztra'>('diario');
+  const [activeTab, setActiveTab] = useState<'diario' | 'historico' | 'receitas' | 'saude' | 'exercicios' | 'poviztra'>('diario');
   const [showPhysicalAssessment, setShowPhysicalAssessment] = useState(false);
   const [isDiaDeTreino, setIsDiaDeTreino] = useState(() => {
     const day = new Date().getDay();
@@ -981,80 +981,15 @@ const App = () => {
             </div>
           </div>
 
-          {/* RESUMO DE CALORIAS (MYFITNESSPAL STYLE) */}
-          <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-200 mb-6">
-            <div className="flex justify-between items-center mb-6">
-              <div className="text-center">
-                <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Meta</div>
-                <div className="text-xl font-black font-montserrat">{CALORIE_GOAL}</div>
-              </div>
-              <div className="text-slate-600 font-light text-xl">-</div>
-              <div className="text-center">
-                <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Alimento</div>
-                <div className="text-xl font-black font-montserrat">{totalKcal}</div>
-              </div>
-              <div className="text-slate-600 font-light text-xl">+</div>
-              <div className="text-center">
-                <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Exercício</div>
-                <div className="text-xl font-black font-montserrat">0</div>
-              </div>
-              <div className="text-slate-600 font-light text-xl">=</div>
-              <div className="text-center">
-                <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Restante</div>
-                <div className={`text-2xl font-black font-montserrat ${remainingKcal < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                  {remainingKcal}
-                </div>
-              </div>
-            </div>
-
-            {/* BARRAS DE MACROS */}
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800">
-              <div>
-                <div className="flex justify-between text-[10px] font-bold mb-1.5 uppercase tracking-wider">
-                  <span className="text-slate-400">Carbs</span>
-                  <span className="text-white">{totalMacros.c}g</span>
-                </div>
-                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-500 rounded-full transition-all duration-500" 
-                    style={{ width: `${Math.min((totalMacros.c / 150) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-[10px] font-bold mb-1.5 uppercase tracking-wider">
-                  <span className="text-slate-400">Prot</span>
-                  <span className="text-white">{totalMacros.p}g</span>
-                </div>
-                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
-                    style={{ width: `${Math.min((totalMacros.p / 120) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-[10px] font-bold mb-1.5 uppercase tracking-wider">
-                  <span className="text-slate-400">Gord</span>
-                  <span className="text-white">{totalMacros.g}g</span>
-                </div>
-                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-amber-500 rounded-full transition-all duration-500" 
-                    style={{ width: `${Math.min((totalMacros.g / 50) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </header>
 
       <div className="max-w-xl mx-auto space-y-4 pt-4 px-3">
-        {activeTab === 'progresso' && <ProgressTracker currentUser={currentUser} />}
+        {activeTab === 'exercicios' && <ExerciseTracker currentUser={currentUser} />}
         {activeTab === 'poviztra' && <PoviztraControl />}
         {activeTab === 'saude' && (
           <div className="space-y-6 pb-24">
+            <WeightMetrics currentUser={currentUser} />
             <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-200">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
@@ -1271,6 +1206,73 @@ const App = () => {
 
         {activeTab === 'diario' && (
           <>
+            {/* RESUMO DE CALORIAS (MYFITNESSPAL STYLE) */}
+            <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-200 mb-6">
+              <div className="flex justify-between items-center mb-6">
+                <div className="text-center">
+                  <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Meta</div>
+                  <div className="text-xl font-black font-montserrat">{CALORIE_GOAL}</div>
+                </div>
+                <div className="text-slate-600 font-light text-xl">-</div>
+                <div className="text-center">
+                  <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Alimento</div>
+                  <div className="text-xl font-black font-montserrat">{totalKcal}</div>
+                </div>
+                <div className="text-slate-600 font-light text-xl">+</div>
+                <div className="text-center">
+                  <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Exercício</div>
+                  <div className="text-xl font-black font-montserrat">0</div>
+                </div>
+                <div className="text-slate-600 font-light text-xl">=</div>
+                <div className="text-center">
+                  <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Restante</div>
+                  <div className={`text-2xl font-black font-montserrat ${remainingKcal < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {remainingKcal}
+                  </div>
+                </div>
+              </div>
+
+              {/* BARRAS DE MACROS */}
+              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800">
+                <div>
+                  <div className="flex justify-between text-[10px] font-bold mb-1.5 uppercase tracking-wider">
+                    <span className="text-slate-400">Carbs</span>
+                    <span className="text-white">{totalMacros.c}g</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-500 rounded-full transition-all duration-500" 
+                      style={{ width: `${Math.min((totalMacros.c / 150) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-[10px] font-bold mb-1.5 uppercase tracking-wider">
+                    <span className="text-slate-400">Prot</span>
+                    <span className="text-white">{totalMacros.p}g</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
+                      style={{ width: `${Math.min((totalMacros.p / 120) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-[10px] font-bold mb-1.5 uppercase tracking-wider">
+                    <span className="text-slate-400">Gord</span>
+                    <span className="text-white">{totalMacros.g}g</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-amber-500 rounded-full transition-all duration-500" 
+                      style={{ width: `${Math.min((totalMacros.g / 50) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             {/* ALERTA DE AVALIAÇÃO COMPLETA */}
             {nextFullAssessment && (nextFullAssessment.isOverdue || nextFullAssessment.isNear) && (
               <motion.div 
@@ -1293,7 +1295,7 @@ const App = () => {
                     Sua avaliação completa (Bioimpedância + Medidas + Dobras) {nextFullAssessment.isOverdue ? 'está pendente' : 'deve ser feita'} dia <b>{new Date(nextFullAssessment.date + 'T12:00:00').toLocaleDateString('pt-BR')}</b>. Próximo alvo: 20 de Maio.
                   </p>
                   <button 
-                    onClick={() => setActiveTab('progresso')}
+                    onClick={() => setActiveTab('exercicios')}
                     className={`mt-3 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm
                       ${nextFullAssessment.isOverdue 
                         ? 'bg-rose-600 text-white hover:bg-rose-700' 
@@ -1988,11 +1990,11 @@ const App = () => {
           </button>
 
           <button 
-            onClick={() => setActiveTab('progresso')}
-            className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'progresso' ? 'text-blue-600' : 'text-stone-400'}`}
+            onClick={() => setActiveTab('exercicios')}
+            className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'exercicios' ? 'text-blue-600' : 'text-stone-400'}`}
           >
             <TrendingDown className="w-6 h-6" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Progresso</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">Exercícios</span>
           </button>
           <button 
             onClick={() => setActiveTab('poviztra')}
