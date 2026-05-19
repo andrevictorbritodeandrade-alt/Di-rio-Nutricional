@@ -15,12 +15,18 @@ import { ProgressEntry, User } from '../types';
 import { saveProgressData, subscribeToProgressData } from '../services/firestoreService';
 
 export const initialData: ProgressEntry[] = [
-  { date: '02/04', weight: 103, muscleMass: 35, bodyFat: 29.5 },
-  { date: '07/04', weight: 102, muscleMass: 35, bodyFat: 29 },
+  { date: '17/03', weight: 99, muscleMass: 34, bodyFat: 30 },
+  { date: '24/03', weight: 100.5, muscleMass: 34.5, bodyFat: 29.8 },
+  { date: '31/03', weight: 101.25, muscleMass: 34.8, bodyFat: 29.6 },
+  { date: '07/04', weight: 102.2, muscleMass: 35, bodyFat: 29.4 },
   { date: '18/04', weight: 101, muscleMass: 35.5, bodyFat: 28.5 },
   { date: '21/04', weight: 100.8, muscleMass: 35.5, bodyFat: 28.2 },
-  { date: '23/04', weight: 100.5, muscleMass: 36, bodyFat: 28 },
   { date: '27/04', weight: 100.1, muscleMass: 36.9, bodyFat: 30 },
+  { date: '30/04', weight: 100.5, muscleMass: 37, bodyFat: 29.8 },
+  { date: '07/05', weight: 100.2, muscleMass: 37.2, bodyFat: 29.5 },
+  { date: '09/05', weight: 99.45, muscleMass: 37.5, bodyFat: 29.2 },
+  { date: '10/05', weight: 99, muscleMass: 37.8, bodyFat: 29.0 },
+  { date: '19/05', weight: 99, muscleMass: 38.0, bodyFat: 28.5 },
 ];
 
 export const WeightMetrics: React.FC<{ currentUser?: User }> = ({ currentUser }) => {

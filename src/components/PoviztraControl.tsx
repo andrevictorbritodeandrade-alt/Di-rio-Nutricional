@@ -4,15 +4,19 @@ import { Pill, Droplet, RefreshCcw, CheckCircle2, Timer, Beaker, AlertCircle, Li
 export const PoviztraControl = () => {
   // --- ESTADOS ---
   const [globalHistory, setGlobalHistory] = useState<{ id: number; name: string; timestamp: string }[]>([
-    { id: 9, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '14/05/2026 08:00:00' },
-    { id: 8, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '13/05/2026 08:00:00' },
-    { id: 7, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '12/05/2026 08:00:00' },
-    { id: 6, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '11/05/2026 08:00:00' },
-    { id: 5, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '09/05/2026 08:00:00' },
-    { id: 4, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '08/05/2026 08:00:00' },
-    { id: 3, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '07/05/2026 08:00:00' },
-    { id: 2, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '06/05/2026 08:00:00' },
-    { id: 1, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '05/05/2026 08:00:00' }
+    { id: 13, name: 'CONSULTA: Reavaliação Poviztra (Dr. Noé)', timestamp: '29/05/2026 10:00:00' },
+    { id: 12, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '19/05/2026 08:00:00' },
+    { id: 11, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '18/05/2026 08:00:00' },
+    { id: 10, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '16/05/2026 08:00:00' },
+    { id: 9, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '15/05/2026 08:00:00' },
+    { id: 8, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '14/05/2026 08:00:00' },
+    { id: 7, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '13/05/2026 08:00:00' },
+    { id: 6, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '12/05/2026 08:00:00' },
+    { id: 5, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '11/05/2026 08:00:00' },
+    { id: 4, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '09/05/2026 08:00:00' },
+    { id: 3, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '08/05/2026 08:00:00' },
+    { id: 2, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '07/05/2026 08:00:00' },
+    { id: 1, name: 'Dose Poviztra (4 clicks - Semana 1)', timestamp: '06/05/2026 08:00:00' }
   ]);
   const [expandedSection, setExpandedSection] = useState('summary');
 
@@ -22,7 +26,7 @@ export const PoviztraControl = () => {
   const [ozempic, setOzempic] = useState({
     name: 'Poviztra',
     totalUnits: 300,
-    remainingUnits: 264, // Total of 36 clicks used (9 doses)
+    remainingUnits: 248, // Total of 52 clicks used (13 doses)
     startWeight: 101.7, // Peso inicial informado
     purchaseDate: '2026-05-06',
     startDate: '2026-05-06',

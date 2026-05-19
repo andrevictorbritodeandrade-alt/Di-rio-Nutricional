@@ -192,6 +192,14 @@ const App = () => {
       chest: '---', waist: '---', abdomen: '---', hip: '---', thighRightPx: '---', thighLeftPx: '---',
       thighRightDt: '---', thighLeftDt: '---', calfRight: '---', calfLeft: '---',
       armRight: '---', armLeft: '---', forearmRight: '---', forearmLeft: '---'
+    },
+    {
+      id: 7, date: '2026/05/10', time: '08:00:00',
+      weight: '99.0', weightStatus: 'Ideal', bmi: '30.5', bodyFat: '29.0', fatWeight: '28.7',
+      skeletalMuscle: '38.0', skeletalMuscleWeight: '38.5', muscleRate: '68.0', muscleWeight: '68.0',
+      water: '52.0', waterWeight: '52.5', visceralFat: '15.0', boneMass: '3.1',
+      metabolism: '2000.0', protein: '18.0', obesityLevel: '30.0', metabolicAge: '40.0',
+      lbm: '73.0', realAge: '35', height: '180'
     }
   ]);
   
